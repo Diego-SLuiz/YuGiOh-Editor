@@ -58,5 +58,5 @@ def linear_gradient ( start_color, stop_color, shades ):
     return palette_array
 
 if __name__ == "__main__":
-    palette = linear_gradient( (80, 80, 80), (160, 160, 160), 16 )
+    palette = linear_gradient( (80, 80, 80), (140, 140, 140), 16 )
     set_titles_palette( palette )

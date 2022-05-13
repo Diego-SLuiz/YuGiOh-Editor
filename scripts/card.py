@@ -3,6 +3,7 @@ import mmap
 import textwrap
 import numpy as np
 
+from math import ceil
 from PIL import Image, ImageFont, ImageDraw
 from .references import *
 
@@ -138,6 +139,7 @@ class Card:
 
             cls.get_names()
             cls.get_infos()
+            cls.get_fusions()
 
             for card in LIBRARY:
                 card.get_title()
@@ -158,6 +160,84 @@ class Card:
 
             cls.set_names()
             cls.set_infos()
+            cls.set_fusions()
+
+    @classmethod
+    def get_fusions ( cls ):
+        cls.WA_FILE.seek( CARD_ADDRESS["compatibility"]["fusion_pointer"] )
+        address_array = np.frombuffer( cls.WA_FILE.read( 0x05A4 ), "uint16" ) + 0xB87800
+
+        for number, address in enumerate( address_array ):
+
+            if address == 0xB87800:
+                LIBRARY[number].fusions_list = []
+                continue
+
+            cls.WA_FILE.seek( address )
+
+            fusions_length = cls.WA_FILE.read_byte()
+            fusions_length = fusions_length if fusions_length else 511 - cls.WA_FILE.read_byte()
+
+            if fusions_length % 2:
+                remove_last_fusion = True
+                fusions_length += 1
+            else:
+                remove_last_fusion = False
+
+            fusions_length = fusions_length * 2 + ceil( fusions_length * 2 / 4 )
+            fusions_bytes = np.frombuffer( cls.WA_FILE.read( fusions_length ), "uint8" )
+            fusions_increment = fusions_bytes[0::5]
+            base_material = np.full( len( fusions_increment ), number + 1 )
+
+            fusions_material_1 = fusions_bytes[1::5] + fusions_increment % 64 % 16 % 4 * 256
+            fusions_result_1 = fusions_bytes[2::5] + fusions_increment % 64 % 16 // 4 * 256
+
+            fusions_material_2 = fusions_bytes[3::5] + fusions_increment % 64 // 16 * 256
+            fusions_result_2 = fusions_bytes[4::5] + fusions_increment // 64 * 256
+
+            fusions = np.stack( (base_material, fusions_material_1, fusions_result_1, base_material, fusions_material_2, fusions_result_2), axis=0 ).T
+            fusions = fusions.reshape( fusions.shape[0] * 2, 3 )
+
+            if remove_last_fusion:
+                fusions = fusions[:-1]
+
+            LIBRARY[number].fusions_list = fusions.tolist()
+
+    @classmethod
+    def set_fusions ( cls ):
+        current_address = CARD_ADDRESS["compatibility"]["fusion_block"]
+
+        for card in LIBRARY:
+
+            if not card.fusions_list:
+                cls.WA_FILE.seek( CARD_ADDRESS["compatibility"]["fusion_pointer"] + card.number * 0x02 )
+                cls.WA_FILE.write( int.to_bytes( 0, 0x02, "little" ) )
+                continue
+
+            fusions_length = len( card.fusions_list )
+            fusions = np.array( card.fusions_list, "uint16" )[:, 1:].ravel()
+
+            if fusions_length % 2:
+                remove_last_fusion = True
+                fusions = np.concatenate( [fusions, np.array( [0, 0], "uint16" )] )
+            else:
+                remove_last_fusion = False
+
+            fusions_increment = fusions[0::4] // 256 + fusions[1::4] // 256 * 4 + fusions[2::4] // 256 * 16 + fusions[3::4] // 256 * 64
+            fusions = fusions % 256
+            fusions_data = np.insert( fusions, np.arange( 0, len( fusions ), 4 ), fusions_increment )
+
+            if remove_last_fusion:
+                fusions_data = fusions_data[:-2]
+
+            cls.WA_FILE.seek( CARD_ADDRESS["compatibility"]["fusion_pointer"] + card.number * 0x02 )
+            cls.WA_FILE.write( (current_address - 0xB87800).to_bytes( 0x02, "little" ) )
+
+            cls.WA_FILE.seek( current_address )
+            cls.WA_FILE.write( bytes([fusions_length] if fusions_length < 255 else [0, 511 - fusions_length]) )
+            cls.WA_FILE.write( fusions_data.astype( "uint8" ).tobytes() )
+
+            current_address += len( fusions_data ) + 1
 
     @classmethod
     def get_names ( cls ):
