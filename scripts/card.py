@@ -1,3 +1,4 @@
+from copy import copy
 import re
 import mmap
 import textwrap
@@ -57,6 +58,13 @@ CARD_ADDRESS = {
 }
 
 LIBRARY = []
+
+def copy_memory ( target, address, offset, data, copys ):
+
+    for index in range( copys ):
+        target.seek ( address + index * offset )
+        target.write( data )
+
 
 class Card:
 
@@ -141,6 +149,7 @@ class Card:
             cls.get_infos()
             cls.get_fusions()
             cls.get_equips()
+            cls.get_rituals()
 
             for card in LIBRARY:
                 card.get_title()
@@ -163,6 +172,7 @@ class Card:
             cls.set_infos()
             cls.set_fusions()
             cls.set_equips()
+            cls.set_rituals()
 
     @classmethod
     def get_fusions ( cls ):
@@ -212,8 +222,9 @@ class Card:
         for card in LIBRARY:
 
             if not card.fusions_list:
-                cls.WA_FILE.seek( CARD_ADDRESS["compatibility"]["fusion_pointer"] + card.number * 0x02 )
-                cls.WA_FILE.write( int.to_bytes( 0, 0x02, "little" ) )
+                pointer_address = CARD_ADDRESS["compatibility"]["fusion_pointer"] + card.number * 0x02
+                pointer_bytes = int.to_bytes( 0, 0x02, "little" )
+                copy_memory( cls.WA_FILE, pointer_address, 0x75800, pointer_bytes, 7 )
                 continue
 
             fusions_length = len( card.fusions_list )
@@ -235,13 +246,12 @@ class Card:
             pointer_address = CARD_ADDRESS["compatibility"]["fusion_pointer"] + card.number * 0x02
             fusions_address = current_address
 
-            for index in range( 7 ):
-                cls.WA_FILE.seek( pointer_address + index * 0x75800 )
-                cls.WA_FILE.write( (current_address - 0xB87800).to_bytes( 0x02, "little" ) )
+            pointer_bytes = (current_address - 0xB87800).to_bytes( 0x02, "little" )
+            fusions_bytes = bytes([fusions_length] if fusions_length < 255 else [0, 511 - fusions_length])
+            fusions_bytes += fusions_data.astype( "uint8" ).tobytes()
 
-                cls.WA_FILE.seek( fusions_address + index * 0x75800 )
-                cls.WA_FILE.write( bytes([fusions_length] if fusions_length < 255 else [0, 511 - fusions_length]) )
-                cls.WA_FILE.write( fusions_data.astype( "uint8" ).tobytes() )
+            copy_memory( cls.WA_FILE, pointer_address, 0x75800, pointer_bytes, 7 )
+            copy_memory( cls.WA_FILE, fusions_address, 0x75800, fusions_bytes, 7 )
 
             current_address += len( fusions_data ) + 1
 
@@ -261,10 +271,7 @@ class Card:
     @classmethod
     def set_equips ( cls ):
         current_address = CARD_ADDRESS["compatibility"]["equip_block"]
-
-        cls.WA_FILE.seek( current_address )
-        cls.WA_FILE.write( bytes( [255] * 0x2800 ) )
-        cls.WA_FILE.seek( current_address )
+        copy_memory( cls.WA_FILE, current_address, 0x75800, bytes( [255] * 0x2800 ), 7 )
 
         for card in LIBRARY:
             if not card.equips_list or card.type != "equip": continue
@@ -272,18 +279,35 @@ class Card:
             equip_spell = ( card.number + 1 ).to_bytes( 0x02, "little" )
             equips_length = len( card.equips_list ).to_bytes( 0x02, "little" )
             equips_bytes =  np.array( card.equips_list, "int16" ).tobytes()
-
-            for index in range( 7 ):
-                cls.WA_FILE.seek( current_address + index * 0x75800 )
-                cls.WA_FILE.write( equip_spell )
-                cls.WA_FILE.write( equips_length )
-                cls.WA_FILE.write( equips_bytes )
-
+            copy_memory( cls.WA_FILE, current_address, 0x75800, equip_spell + equips_length + equips_bytes, 7 )
             current_address += len( equips_bytes ) + 4
 
-        for index in range( 7 ):
-            cls.WA_FILE.seek( current_address + index * 0x75800 )
-            cls.WA_FILE.write( int.to_bytes( 0, 0x02, "little" ) )
+        copy_memory( cls.WA_FILE, current_address, 0x75800, int.to_bytes( 0, 0x02, "little" ), 7 )
+
+    @classmethod
+    def get_rituals ( cls ):
+        cls.WA_FILE.seek( CARD_ADDRESS["compatibility"]["ritual_block"] )
+
+        for card in LIBRARY:
+            card.rituals_tributes = None
+
+        while np.all( ritual_recipe := np.frombuffer( cls.WA_FILE.read( 0x0A ), "uint16" ) ):
+            ritual_spell = ritual_recipe[0] - 1
+            LIBRARY[ritual_spell].rituals_tributes = ritual_recipe.tolist()
+
+    @classmethod
+    def set_rituals ( cls ):
+        current_address = CARD_ADDRESS["compatibility"]["ritual_block"]
+        copy_memory( cls.WA_FILE, current_address, 0x75800, bytes( [255] * 0x800 ), 7 )
+
+        for card in LIBRARY:
+            if not card.rituals_tributes or card.type != "ritual": continue
+
+            ritual = np.array( card.rituals_tributes, "int16" ).tobytes()
+            copy_memory( cls.WA_FILE, current_address, 0x75800, ritual, 7 )
+            current_address += len( ritual )
+
+        copy_memory( cls.WA_FILE, current_address, 0x75800, bytes( [0] * 0x0A ), 7 )
 
     @classmethod
     def get_names ( cls ):

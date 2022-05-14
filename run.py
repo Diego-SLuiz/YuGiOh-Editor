@@ -16,6 +16,12 @@ def main ():
     wa_path = r"C:\Users\luizd\Documents\PSX Games\Yu-Gi-Oh! Forbidden Memories (USA)\Modified\WA_MRG.MRG"
 
     Card.load_library( sl_path, wa_path )
+
+    for card in LIBRARY:
+        card.fusions_list.clear()
+        card.equips_list.clear()
+        card.rituals_tributes = None
+
     Card.save_library( sl_path, wa_path )
 
 if __name__ == "__main__":
