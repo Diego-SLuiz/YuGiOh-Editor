@@ -140,6 +140,7 @@ class Card:
             cls.get_names()
             cls.get_infos()
             cls.get_fusions()
+            cls.get_equips()
 
             for card in LIBRARY:
                 card.get_title()
@@ -161,6 +162,7 @@ class Card:
             cls.set_names()
             cls.set_infos()
             cls.set_fusions()
+            cls.set_equips()
 
     @classmethod
     def get_fusions ( cls ):
@@ -230,14 +232,58 @@ class Card:
             if remove_last_fusion:
                 fusions_data = fusions_data[:-2]
 
-            cls.WA_FILE.seek( CARD_ADDRESS["compatibility"]["fusion_pointer"] + card.number * 0x02 )
-            cls.WA_FILE.write( (current_address - 0xB87800).to_bytes( 0x02, "little" ) )
+            pointer_address = CARD_ADDRESS["compatibility"]["fusion_pointer"] + card.number * 0x02
+            fusions_address = current_address
 
-            cls.WA_FILE.seek( current_address )
-            cls.WA_FILE.write( bytes([fusions_length] if fusions_length < 255 else [0, 511 - fusions_length]) )
-            cls.WA_FILE.write( fusions_data.astype( "uint8" ).tobytes() )
+            for index in range( 7 ):
+                cls.WA_FILE.seek( pointer_address + index * 0x75800 )
+                cls.WA_FILE.write( (current_address - 0xB87800).to_bytes( 0x02, "little" ) )
+
+                cls.WA_FILE.seek( fusions_address + index * 0x75800 )
+                cls.WA_FILE.write( bytes([fusions_length] if fusions_length < 255 else [0, 511 - fusions_length]) )
+                cls.WA_FILE.write( fusions_data.astype( "uint8" ).tobytes() )
 
             current_address += len( fusions_data ) + 1
+
+    @classmethod
+    def get_equips ( cls ):
+        cls.WA_FILE.seek( CARD_ADDRESS["compatibility"]["equip_block"] )
+
+        for card in LIBRARY:
+            card.equips_list = []
+
+        while equip_spell := int.from_bytes( cls.WA_FILE.read( 0x02 ), "little"):
+            equips_length = int.from_bytes( cls.WA_FILE.read( 0x02 ), "little" )
+            equips_list = np.frombuffer( cls.WA_FILE.read( equips_length * 2 ), "uint16" ).tolist()
+
+            LIBRARY[equip_spell - 1].equips_list = equips_list
+
+    @classmethod
+    def set_equips ( cls ):
+        current_address = CARD_ADDRESS["compatibility"]["equip_block"]
+
+        cls.WA_FILE.seek( current_address )
+        cls.WA_FILE.write( bytes( [255] * 0x2800 ) )
+        cls.WA_FILE.seek( current_address )
+
+        for card in LIBRARY:
+            if not card.equips_list or card.type != "equip": continue
+
+            equip_spell = ( card.number + 1 ).to_bytes( 0x02, "little" )
+            equips_length = len( card.equips_list ).to_bytes( 0x02, "little" )
+            equips_bytes =  np.array( card.equips_list, "int16" ).tobytes()
+
+            for index in range( 7 ):
+                cls.WA_FILE.seek( current_address + index * 0x75800 )
+                cls.WA_FILE.write( equip_spell )
+                cls.WA_FILE.write( equips_length )
+                cls.WA_FILE.write( equips_bytes )
+
+            current_address += len( equips_bytes ) + 4
+
+        for index in range( 7 ):
+            cls.WA_FILE.seek( current_address + index * 0x75800 )
+            cls.WA_FILE.write( int.to_bytes( 0, 0x02, "little" ) )
 
     @classmethod
     def get_names ( cls ):
