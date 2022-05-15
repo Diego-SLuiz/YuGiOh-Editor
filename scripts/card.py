@@ -532,23 +532,24 @@ class Card:
 
         title_font = ImageFont.truetype( font_path, 12 )
         title_size = title_font.getsize( self.name )
-        title_sheet = Image.new( "RGB", title_size, "black" )
-        title_draw = ImageDraw.Draw( title_sheet, "RGB" )
-        title_draw.text( (0, 0), self.name, "white", title_font )
 
-        template = Image.new( "RGB", (96, 14), "black" )
+        if title_size[0] > 96:
+            title_sheet = Image.new( "L", (title_size[0] + 2, 14), 0 )
+            resize_needed = True
+        else:
+            title_sheet = Image.new( "L", (96, 14), 0 )
+            resize_needed = False
 
-        if title_sheet.width > 94:
-            title_sheet = title_sheet.resize( (94, 14), Image.LANCZOS )
+        title_draw = ImageDraw.Draw( title_sheet, "L" )
+        title_draw.text( (2, -2), self.name, 240, title_font )
+        title_sheet = title_sheet if not resize_needed else title_sheet.resize( (96, 14), Image.LANCZOS )
+        title_sheet = title_sheet.quantize( 16 )
 
-        template.paste( title_sheet, (2, -1))
-        template = template.quantize( 16 )
-
-        self.title_image = template
+        self.title_image = title_sheet
 
     def set_title ( self ):
         title_array = np.asarray( self.title_image, "uint8" ).ravel()
-        title_array[title_array > 10] = 15 # reduce blur radius
+        title_array[title_array > 12] = 15
 
         left_pixels = title_array[0::2]
         right_pixels = title_array[1::2] * 16
