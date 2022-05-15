@@ -1,4 +1,3 @@
-from copy import copy
 import re
 import mmap
 import textwrap
@@ -73,6 +72,7 @@ class Card:
 
     def __init__ ( self, number ):
         self.number = number
+        self.get_layout()
         self.get_data()
         self.get_artwork()
         self.get_miniature()
@@ -163,6 +163,7 @@ class Card:
             cls.WA_FILE = wa_map
 
             for card in LIBRARY:
+                card.set_layout()
                 card.set_data()
                 card.set_title()
                 card.set_artwork()
@@ -385,6 +386,82 @@ class Card:
 
             infos_block_address += len( info_bytes )
             infos_pointer_address += 0x02
+
+    @classmethod
+    def get_layout ( cls ):
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["artwork_X"] )
+        cls.layout_artwork_X = cls.SL_FILE.read_byte()
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["artwork_Y"] )
+        cls.layout_artwork_Y = cls.SL_FILE.read_byte()
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["name_X"] )
+        cls.layout_name_X = cls.SL_FILE.read_byte()
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["name_Y"] )
+        cls.layout_name_Y = cls.SL_FILE.read_byte()
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["attack_X"] )
+        cls.layout_attack_X = cls.SL_FILE.read_byte()
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["attack_Y"] )
+        cls.layout_attack_Y = cls.SL_FILE.read_byte()
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["defense_X"] )
+        cls.layout_defense_X = cls.SL_FILE.read_byte()
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["defense_Y"] )
+        cls.layout_defense_Y = cls.SL_FILE.read_byte()
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["level_X"] )
+        cls.layout_level_X = cls.SL_FILE.read_byte()
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["level_Y"] )
+        cls.layout_level_Y = cls.SL_FILE.read_byte()
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["attribute_X"] )
+        cls.layout_attribute_X = cls.SL_FILE.read_byte()
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["attribute_Y"] )
+        cls.layout_attribute_Y = cls.SL_FILE.read_byte()
+
+    @classmethod
+    def set_layout ( cls ):
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["artwork_X"] )
+        cls.SL_FILE.write( cls.layout_artwork_X.to_bytes( 0x01, "little" ) )
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["artwork_Y"] )
+        cls.SL_FILE.write( cls.layout_artwork_Y.to_bytes( 0x01, "little" ) )
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["name_X"] )
+        cls.SL_FILE.write( cls.layout_name_X.to_bytes( 0x01, "little" ) )
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["name_Y"] )
+        cls.SL_FILE.write( cls.layout_name_Y.to_bytes( 0x01, "little" ) )
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["attack_X"] )
+        cls.SL_FILE.write( cls.layout_attack_X.to_bytes( 0x01, "little" ) )
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["attack_Y"] )
+        cls.SL_FILE.write( cls.layout_attack_Y.to_bytes( 0x01, "little" ) )
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["defense_X"] )
+        cls.SL_FILE.write( cls.layout_defense_X.to_bytes( 0x01, "little" ) )
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["defense_Y"] )
+        cls.SL_FILE.write( cls.layout_defense_Y.to_bytes( 0x01, "little" ) )
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["level_X"] )
+        cls.SL_FILE.write( cls.layout_level_X.to_bytes( 0x01, "little" ) )
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["level_Y"] )
+        cls.SL_FILE.write( cls.layout_level_Y.to_bytes( 0x01, "little" ) )
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["attribute_X"] )
+        cls.SL_FILE.write( cls.layout_attribute_X.to_bytes( 0x01, "little" ) )
+
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["attribute_Y"] )
+        cls.SL_FILE.write( cls.layout_attribute_Y.to_bytes( 0x01, "little" ) )
 
     def get_data ( self ):
         types_table = dict( enumerate( TYPES ) )
