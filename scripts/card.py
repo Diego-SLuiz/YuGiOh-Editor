@@ -16,8 +16,8 @@ CARD_ADDRESS = {
     "layout": {
         "artwork_X": 0x00019434,
         "artwork_Y": 0x0001944C,
-        "name_X": 0x000194C8,
-        "name_Y": 0x000194FC,
+        "title_X": 0x000194C8,
+        "title_Y": 0x000194FC,
         "attack_X": 0x000196B0,
         "attack_Y": 0x000196C4,
         "defense_X": 0x0001973C,
@@ -395,11 +395,11 @@ class Card:
         cls.SL_FILE.seek( CARD_ADDRESS["layout"]["artwork_Y"] )
         cls.layout_artwork_Y = cls.SL_FILE.read_byte()
 
-        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["name_X"] )
-        cls.layout_name_X = cls.SL_FILE.read_byte()
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["title_X"] )
+        cls.layout_title_X = cls.SL_FILE.read_byte()
 
-        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["name_Y"] )
-        cls.layout_name_Y = cls.SL_FILE.read_byte()
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["title_Y"] )
+        cls.layout_title_Y = cls.SL_FILE.read_byte()
 
         cls.SL_FILE.seek( CARD_ADDRESS["layout"]["attack_X"] )
         cls.layout_attack_X = cls.SL_FILE.read_byte()
@@ -433,11 +433,11 @@ class Card:
         cls.SL_FILE.seek( CARD_ADDRESS["layout"]["artwork_Y"] )
         cls.SL_FILE.write( cls.layout_artwork_Y.to_bytes( 0x01, "little" ) )
 
-        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["name_X"] )
-        cls.SL_FILE.write( cls.layout_name_X.to_bytes( 0x01, "little" ) )
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["title_X"] )
+        cls.SL_FILE.write( cls.layout_title_X.to_bytes( 0x01, "little" ) )
 
-        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["name_Y"] )
-        cls.SL_FILE.write( cls.layout_name_Y.to_bytes( 0x01, "little" ) )
+        cls.SL_FILE.seek( CARD_ADDRESS["layout"]["title_Y"] )
+        cls.SL_FILE.write( cls.layout_title_Y.to_bytes( 0x01, "little" ) )
 
         cls.SL_FILE.seek( CARD_ADDRESS["layout"]["attack_X"] )
         cls.SL_FILE.write( cls.layout_attack_X.to_bytes( 0x01, "little" ) )

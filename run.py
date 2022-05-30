@@ -1,28 +1,6 @@
-import time
-from scripts.card import LIBRARY, Card
+from PySide6.QtWidgets import QApplication
+from gui.main_window import MainWindow
 
-def timer ( func ):
-    def wrapper ():
-        start_time = time.time()
-        func()
-        stop_time = time.time()
-        print( f"Finished in {stop_time - start_time:.2f}s")
-
-    return wrapper
-
-@timer
-def main ():
-    sl_path = r"C:\Users\luizd\Documents\PSX Games\Yu-Gi-Oh! Forbidden Memories (USA)\Modified\SLUS_014.11"
-    wa_path = r"C:\Users\luizd\Documents\PSX Games\Yu-Gi-Oh! Forbidden Memories (USA)\Modified\WA_MRG.MRG"
-
-    Card.load_library( sl_path, wa_path )
-
-    for card in LIBRARY:
-        card.fusions_list.clear()
-        card.equips_list.clear()
-        card.rituals_tributes = None
-
-    Card.save_library( sl_path, wa_path )
-
-if __name__ == "__main__":
-    main()
+application = QApplication([])
+window = MainWindow()
+application.exec()
