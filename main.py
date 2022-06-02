@@ -1,6 +1,6 @@
-from PySide6 import QtWidgets, QtCore, QtGui
-from scripts.card import LIBRARY, Card
-from gui.card_editor import CardEditor
+from PySide6 import QtWidgets, QtGui, QtCore
+from scripts.card.card_editor import Card, LIBRARY
+from gui.card.card_editor_ui import CardEditor
 
 class SearchFiles ( QtWidgets.QDialog ):
 
@@ -139,3 +139,7 @@ class MainWindow ( QtWidgets.QMainWindow ):
 
     def load_behavior_editor ( self ):
         self.centralWidget().setCurrentIndex( 3 )
+
+app = QtWidgets.QApplication([])
+win = MainWindow()
+app.exec()
