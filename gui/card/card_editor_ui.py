@@ -14,22 +14,26 @@ class LibraryList ( QtWidgets.QWidget ):
         self.create_widgets()
 
     def create_widgets ( self ):
+        # Main layout
         layout = QtWidgets.QVBoxLayout()
         layout.setContentsMargins( 0, 0, 0, 0 )
         self.setLayout( layout )
 
+        # Card search input line
         search_card = QtWidgets.QLineEdit( placeholderText="Search" )
         search_card.textChanged.connect( self.filter_cards )
         layout.addWidget( search_card )
         self.search_card = search_card
 
+        # Model with sort proxy
         library_model = QtCore.QSortFilterProxyModel()
         library_model.setSourceModel( LibraryModel() )
         library_model.setFilterCaseSensitivity( QtCore.Qt.CaseInsensitive.CaseInsensitive )
+
+        # Library view
         library_view = QtWidgets.QListView()
         library_view.setModel( library_model )
-        library_view.selectionModel().selectionChanged.connect( self.current_card )
-
+        library_view.selectionModel().currentChanged.connect( self.current_card )
         layout.addWidget( library_view )
         self.library_view = library_view
 
@@ -57,7 +61,7 @@ class CardEditor ( QtWidgets.QWidget ):
         self.create_widgets()
 
     def create_widgets ( self ):
-         # Main card editor layout
+        # Main card editor layout
         main_layout = QtWidgets.QHBoxLayout()
         self.setLayout( main_layout )
 
@@ -66,28 +70,15 @@ class CardEditor ( QtWidgets.QWidget ):
         main_layout.addWidget( library_list, 1 )
         self.library_list = library_list
 
-        # Card editor pages
+        # Card editor
         editor_tabs = QtWidgets.QTabWidget()
         main_layout.addWidget( editor_tabs, 2 )
 
         # Data editor page
-        card_preview = CardPreview()
-        card_preview.setSizePolicy( QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding )
-        card_preview.setAlignment( QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignTop )
-        card_preview.setMinimumWidth( 140 )
-        card_preview.setMaximumWidth( 280 )
-        library_list.card_changed.connect( card_preview.create_preview_image )
-
         data_editor = DataEditor()
         data_editor.setSizePolicy( QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum )
-
-        data_editor_layout = QtWidgets.QHBoxLayout()
-        data_editor_layout.addWidget( card_preview, 2 )
-        data_editor_layout.addWidget( data_editor, 1 )
-
-        data_editor_widget = QtWidgets.QWidget()
-        data_editor_widget.setLayout( data_editor_layout )
-        editor_tabs.addTab( data_editor_widget, "Data" )
+        library_list.card_changed.connect( data_editor.card_preview.create_preview_image )
+        editor_tabs.addTab( data_editor, "Data" )
 
         # Fusion editor page
         fusion_editor = FusionEditor()
