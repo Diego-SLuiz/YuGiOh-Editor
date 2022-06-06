@@ -73,14 +73,18 @@ class EquipFilter ( QtWidgets.QDialog ):
         self.create_widgets()
 
     def create_widgets ( self ):
-        layout = QtWidgets.QHBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.setLayout( layout )
 
+        equip_cards_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout( equip_cards_layout )
+
         monster_filter = CardSearch( "Monster Card" )
-        layout.addWidget( monster_filter )
+        monster_filter.setSizePolicy( QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding )
+        equip_cards_layout.addWidget( monster_filter )
 
         equip_selector_group = QtWidgets.QGroupBox( "Equip Card" )
-        layout.addWidget( equip_selector_group )
+        equip_cards_layout.addWidget( equip_selector_group )
 
         equip_selector_layout = QtWidgets.QVBoxLayout()
         equip_selector_group.setLayout( equip_selector_layout )
@@ -89,8 +93,33 @@ class EquipFilter ( QtWidgets.QDialog ):
         equip_selector_layout.addWidget( equip_selector )
 
         equip_preview = CardPreview()
+        equip_preview.setMinimumWidth( 140 )
+        equip_preview.setMaximumWidth( 280 )
+        equip_preview.setAlignment( QtCore.Qt.AlignmentFlag.AlignCenter )
+        equip_preview.setSizePolicy( QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding )
+        equip_selector.card_selected.connect( equip_preview.create_preview_image )
         equip_selector.card_selected.connect( equip_preview.create_preview_image )
         equip_selector_layout.addWidget( equip_preview )
+
+        buttons_action_group = QtWidgets.QGroupBox()
+        layout.addWidget( buttons_action_group )
+
+        buttons_action_layout = QtWidgets.QHBoxLayout()
+        buttons_action_group.setLayout( buttons_action_layout )
+
+        confirm_button = QtWidgets.QPushButton( "Confirm" )
+        confirm_button.clicked.connect( self.on_confirm )
+        buttons_action_layout.addWidget( confirm_button )
+
+        cancel_button = QtWidgets.QPushButton( "Cancel" )
+        cancel_button.clicked.connect( self.on_cancel )
+        buttons_action_layout.addWidget( cancel_button )
+
+    def on_confirm ( self ):
+        print( "Confirm" )
+
+    def on_cancel ( self ):
+        print( "Cancel" )
 
 class EquipEditor ( QtWidgets.QWidget ):
 
