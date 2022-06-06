@@ -1,9 +1,10 @@
 from PySide6 import QtWidgets, QtCore
 from scripts.card.card_editor import Card, LIBRARY
 from gui.utilities.library_model import LibraryModel
-from gui.utilities.card_preview import CardPreview
+from gui.utilities.library_sort import LibrarySort
 from gui.card.card_data_ui import DataEditor
 from gui.card.card_fusion_ui import FusionEditor
+from gui.card.card_equip_ui import EquipEditor
 
 class LibraryList ( QtWidgets.QWidget ):
 
@@ -26,7 +27,7 @@ class LibraryList ( QtWidgets.QWidget ):
         self.search_card = search_card
 
         # Model with sort proxy
-        library_model = QtCore.QSortFilterProxyModel()
+        library_model = LibrarySort()
         library_model.setSourceModel( LibraryModel() )
         library_model.setFilterCaseSensitivity( QtCore.Qt.CaseInsensitive.CaseInsensitive )
 
@@ -72,6 +73,7 @@ class CardEditor ( QtWidgets.QWidget ):
 
         # Card editor
         editor_tabs = QtWidgets.QTabWidget()
+        editor_tabs.currentChanged.connect( self.load_editor_page )
         main_layout.addWidget( editor_tabs, 2 )
 
         # Data editor page
@@ -84,3 +86,24 @@ class CardEditor ( QtWidgets.QWidget ):
         fusion_editor = FusionEditor()
         library_list.card_changed.connect( fusion_editor.fusions_table.initialize_model )
         editor_tabs.addTab( fusion_editor, "Fusions" )
+
+        # Equip editor page
+        equip_editor = EquipEditor()
+        library_list.card_changed.connect( equip_editor.equips_table.initialize_model )
+        editor_tabs.addTab( equip_editor, "Equips" )
+
+    def load_editor_page ( self, index ):
+        library_model = self.library_list.library_view.model()
+
+        if index == 0 or index == 1:
+            library_model.set_accept_types( None )
+            library_model.set_reject_types( None )
+            return
+
+        elif index == 2:
+            library_model.set_accept_types( [ "equip" ] )
+            library_model.set_reject_types( None )
+
+        elif index == 3:
+            library_model.set_accept_types( [ "ritual" ] )
+            library_model.set_reject_types( None )
