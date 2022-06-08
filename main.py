@@ -1,4 +1,5 @@
 from PySide6 import QtWidgets, QtGui, QtCore
+from gui.utilities.library_model import LibraryModel
 from scripts.card.card_editor import Card, LIBRARY
 from gui.card.card_editor_ui import CardEditor
 
@@ -85,7 +86,7 @@ class MainWindow ( QtWidgets.QMainWindow ):
         self.setCentralWidget( main_widget )
 
         card_editor = CardEditor()
-        self.path_changed.connect( card_editor.library_list.reset_library )
+        self.path_changed.connect( LibraryModel.update_library )
         main_widget.addWidget( card_editor )
 
         main_widget.addWidget( QtWidgets.QLabel( "Page 2" ) )

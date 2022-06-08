@@ -4,9 +4,12 @@ from scripts.card.card_editor import LIBRARY
 
 class LibraryModel ( QtCore.QAbstractListModel ):
 
+    INSTANCES = []
+
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.source = LIBRARY
+        self.INSTANCES.append( self )
 
     def rowCount ( self, parent ):
         return len( self.source )
@@ -21,3 +24,9 @@ class LibraryModel ( QtCore.QAbstractListModel ):
 
         elif role == QtCore.Qt.ItemDataRole.DecorationRole:
             return QtGui.QPixmap.fromImage( ImageQt( card.miniature_image ) )
+
+    @classmethod
+    def update_library ( cls ):
+        for model in cls.INSTANCES:
+            model.beginResetModel()
+            model.endResetModel()

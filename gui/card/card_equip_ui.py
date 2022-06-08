@@ -9,6 +9,17 @@ class EquipSort ( QtCore.QSortFilterProxyModel ):
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
 
+    def filterAcceptsRow ( self, source_row, source_parent ):
+        pattern = self.filterRegularExpression()
+        role = QtCore.Qt.ItemDataRole.DisplayRole
+        model = self.sourceModel()
+        match = any( [ pattern.match( x ).hasMatch() for x in [ model.data( model.index( source_row, i, source_parent ), role ) for i in range( model.columnCount( source_parent ) ) ] ] )
+
+        if match:
+            return True
+
+        return False
+
 class EquipModel ( QtCore.QAbstractTableModel ):
 
     def __init__ ( self, source, *args, **kwargs ):
@@ -61,10 +72,13 @@ class EquipTable ( QtWidgets.QWidget ):
 
     def initialize_model ( self, card ):
         equips_list = [ [ card.number + 1, x ] for x in card.equips_list ]
-        self.table_view.setModel( EquipModel( equips_list ) )
+        model = EquipSort()
+        model.setSourceModel( EquipModel( equips_list ) )
+        self.table_view.setModel( model )
 
-    def search_equip ( self ):
-        pass
+    def search_equip ( self, text ):
+        model = self.table_view.model()
+        model.setFilterRegularExpression( text )
 
 class EquipFilter ( QtWidgets.QDialog ):
 
@@ -80,6 +94,7 @@ class EquipFilter ( QtWidgets.QDialog ):
         layout.addLayout( equip_cards_layout )
 
         monster_filter = CardSearch( "Monster Card" )
+        monster_filter.select_card.library_model.set_reject_types( [ "spell", "trap", "equip", "ritual" ] )
         monster_filter.setSizePolicy( QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding )
         equip_cards_layout.addWidget( monster_filter )
 
@@ -90,6 +105,7 @@ class EquipFilter ( QtWidgets.QDialog ):
         equip_selector_group.setLayout( equip_selector_layout )
 
         equip_selector = CardSelector()
+        equip_selector.library_model.set_accept_types( [ "equip" ] )
         equip_selector_layout.addWidget( equip_selector )
 
         equip_preview = CardPreview()

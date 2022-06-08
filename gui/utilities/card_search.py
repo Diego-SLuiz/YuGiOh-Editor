@@ -23,6 +23,7 @@ class CardSearch ( QtWidgets.QGroupBox ):
         select_card = CardSelector()
         select_card.card_selected.connect( self.set_card )
         layout.addRow( "Number", select_card )
+        self.select_card = select_card
 
         select_group = QtWidgets.QComboBox()
         select_group.addItems( ["None", "Unique Fusion", "Ritual Monster"] )
