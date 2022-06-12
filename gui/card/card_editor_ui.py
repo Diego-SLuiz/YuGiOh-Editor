@@ -84,7 +84,7 @@ class CardEditor ( QtWidgets.QWidget ):
 
         # Fusion editor page
         fusion_editor = FusionEditor()
-        library_list.card_changed.connect( fusion_editor.fusions_table.initialize_model )
+        library_list.card_changed.connect( fusion_editor.initialize_fusions_table )
         editor_tabs.addTab( fusion_editor, "Fusions" )
 
         # Equip editor page
