@@ -1,4 +1,4 @@
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets
 from gui.card.base_table_widget import BaseTableWidget
 
 class FusionEditor ( QtWidgets.QWidget ):
@@ -18,7 +18,7 @@ class FusionEditor ( QtWidgets.QWidget ):
         self.fusions_table = fusions_table
 
         # Buttons group with the available interactions
-        buttons_group = QtWidgets.QGroupBox( "Actions" )
+        buttons_group = QtWidgets.QGroupBox()
         main_layout.addWidget( buttons_group )
 
         buttons_layout = QtWidgets.QHBoxLayout()
@@ -46,7 +46,8 @@ class FusionEditor ( QtWidgets.QWidget ):
         buttons_layout.addWidget( clear_card )
 
     def initialize_fusions_table ( self, card ):
-        self.fusions_table.update_source_data( card.fusions_list )
+        fusions_list = [ [ card.number + 1, a, b ] for a, b in card.fusions_list ]
+        self.fusions_table.update_source_data( fusions_list )
 
     def add_card_fusion ( self ):
         print( "Add One Fusion" )

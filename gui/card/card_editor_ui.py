@@ -89,7 +89,7 @@ class CardEditor ( QtWidgets.QWidget ):
 
         # Equip editor page
         equip_editor = EquipEditor()
-        library_list.card_changed.connect( equip_editor.equips_table.initialize_model )
+        library_list.card_changed.connect( equip_editor.initialize_equips_table )
         editor_tabs.addTab( equip_editor, "Equips" )
 
     def load_editor_page ( self, index ):
