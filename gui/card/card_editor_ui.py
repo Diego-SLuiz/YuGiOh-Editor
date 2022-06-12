@@ -1,4 +1,5 @@
 from PySide6 import QtWidgets, QtCore
+from gui.card.card_ritual_ui import RitualEditor
 from scripts.card.card_editor import Card, LIBRARY
 from gui.utilities.library_model import LibraryModel
 from gui.utilities.library_sort import LibrarySort
@@ -91,6 +92,11 @@ class CardEditor ( QtWidgets.QWidget ):
         equip_editor = EquipEditor()
         library_list.card_changed.connect( equip_editor.initialize_equips_table )
         editor_tabs.addTab( equip_editor, "Equips" )
+
+        # Ritual editor page
+        ritual_editor = RitualEditor()
+        library_list.card_changed.connect( ritual_editor.initialize_rituals_table )
+        editor_tabs.addTab( ritual_editor, "Rituals" )
 
     def load_editor_page ( self, index ):
         library_model = self.library_list.library_view.model()

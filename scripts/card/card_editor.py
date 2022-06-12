@@ -288,7 +288,7 @@ class Card:
         cls.WA_FILE.seek( CARD_ADDRESS["compatibility"]["ritual_block"] )
 
         for card in LIBRARY:
-            card.rituals_tributes = None
+            card.rituals_tributes = []
 
         while np.all( ritual_recipe := np.frombuffer( cls.WA_FILE.read( 0x0A ), "uint16" ) ):
             ritual_spell = ritual_recipe[0] - 1
