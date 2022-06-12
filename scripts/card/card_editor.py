@@ -64,7 +64,6 @@ def copy_memory ( target, address, offset, data, copys ):
         target.seek ( address + index * offset )
         target.write( data )
 
-
 class Card:
 
     SL_FILE = None
@@ -200,7 +199,6 @@ class Card:
             fusions_length = fusions_length * 2 + ceil( fusions_length * 2 / 4 )
             fusions_bytes = np.frombuffer( cls.WA_FILE.read( fusions_length ), "uint8" )
             fusions_increment = fusions_bytes[0::5]
-            base_material = np.full( len( fusions_increment ), number + 1 )
 
             fusions_material_1 = fusions_bytes[1::5] + fusions_increment % 64 % 16 % 4 * 256
             fusions_result_1 = fusions_bytes[2::5] + fusions_increment % 64 % 16 // 4 * 256
@@ -208,8 +206,8 @@ class Card:
             fusions_material_2 = fusions_bytes[3::5] + fusions_increment % 64 // 16 * 256
             fusions_result_2 = fusions_bytes[4::5] + fusions_increment // 64 * 256
 
-            fusions = np.stack( (base_material, fusions_material_1, fusions_result_1, base_material, fusions_material_2, fusions_result_2), axis=0 ).T
-            fusions = fusions.reshape( fusions.shape[0] * 2, 3 )
+            fusions = np.stack( (fusions_material_1, fusions_result_1, fusions_material_2, fusions_result_2), axis=0 ).T
+            fusions = fusions.reshape( fusions.shape[0] * 2, 2 )
 
             if remove_last_fusion:
                 fusions = fusions[:-1]
@@ -229,7 +227,7 @@ class Card:
                 continue
 
             fusions_length = len( card.fusions_list )
-            fusions = np.array( card.fusions_list, "uint16" )[:, 1:].ravel()
+            fusions = np.array( card.fusions_list, "uint16" ).ravel()
 
             if fusions_length % 2:
                 remove_last_fusion = True
