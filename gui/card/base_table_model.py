@@ -1,5 +1,5 @@
 from PySide6 import QtCore
-from gui.utilities.library_model import LibraryModel
+from gui.card.library_model import LibraryModel
 
 class BaseTableModel ( QtCore.QAbstractTableModel ):
 

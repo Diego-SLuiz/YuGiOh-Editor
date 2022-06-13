@@ -1,21 +1,22 @@
 from PySide6 import QtCore, QtGui
 from scripts.card.card_editor import LIBRARY
 
-class LibrarySort ( QtCore.QSortFilterProxyModel ):
+class LibraryFilter ( QtCore.QSortFilterProxyModel ):
 
     def __init__ ( self, *args, **kwargs ):
-        super().__init__()
+        super().__init__( *args, **kwargs )
         self.accept_types = None
         self.reject_types = None
 
     def filterAcceptsRow ( self, source_row, source_parent ):
-        card = LIBRARY[source_row]
+        # Accept any row where the card in that row satisfy the type requirement and match the search pattern
+        # card = LIBRARY[ source_row ]
 
-        if self.accept_types and not card.type in self.accept_types:
-            return False
+        # if self.accept_types and not card.type in self.accept_types:
+        #     return False
 
-        if self.reject_types and card.type in self.reject_types:
-            return False
+        # if self.reject_types and card.type in self.reject_types:
+        #     return False
 
         pattern = self.filterRegularExpression()
         source_model = self.sourceModel()
@@ -28,9 +29,13 @@ class LibrarySort ( QtCore.QSortFilterProxyModel ):
         return True
 
     def set_accept_types ( self, types ):
+        # Change the type requirement that cards must have when applying filter
         self.accept_types = types
-        self.invalidateFilter()
 
     def set_reject_types ( self, types ):
+        # Change the type requirement that cards must not have when applying filter
         self.reject_types = types
+
+    def reset_filter ( self ):
+        # Invalidate the current filter and filter the library
         self.invalidateFilter()

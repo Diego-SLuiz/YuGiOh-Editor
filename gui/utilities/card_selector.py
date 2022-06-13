@@ -1,7 +1,7 @@
 from PySide6 import QtWidgets, QtCore
 from scripts.card.card_editor import LIBRARY, Card
-from gui.utilities.library_model import LibraryModel
-from gui.utilities.library_sort import LibrarySort
+from gui.card.library_model import LibraryModel
+from gui.card.library_filter import LibrarySort
 
 class CardSelector ( QtWidgets.QWidget ):
 
