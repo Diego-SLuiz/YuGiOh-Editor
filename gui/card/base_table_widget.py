@@ -25,7 +25,7 @@ class BaseTableWidget ( QtWidgets.QWidget ):
 
         # Text entry to filter the table with cards
         search_entry = QtWidgets.QLineEdit( placeholderText="Search" )
-        search_entry.textChanged.connect( self.update_filter_pattern )
+        search_entry.textChanged.connect( self.update_text_pattern )
         main_layout.addWidget( search_entry )
 
         # Table view that shows the cards
@@ -34,9 +34,9 @@ class BaseTableWidget ( QtWidgets.QWidget ):
         cards_table.horizontalHeader().setSectionResizeMode( QtWidgets.QHeaderView.ResizeMode.Stretch )
         main_layout.addWidget( cards_table )
 
-    def update_filter_pattern ( self, pattern ):
+    def update_text_pattern ( self, pattern ):
         # Update the search pattern when filtering the table
-        self.table_filter.setFilterRegularExpression( pattern )
+        self.table_filter.setFilterFixedString( pattern )
 
     def update_source_data ( self, source_data ):
         # Change the source of data for the table

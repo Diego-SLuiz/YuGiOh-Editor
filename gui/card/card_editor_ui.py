@@ -49,19 +49,11 @@ class CardEditor ( QtWidgets.QWidget ):
 
     def load_editor_page ( self, index ):
         # Filter the library to work with the appropriate card types
-        library_filter = self.library_widget.library_filter
-
-        if index == 0 or index == 1:
-            library_filter.set_accept_types( [ None ] )
-            library_filter.set_reject_types( [ None ] )
-            library_filter.reset_filter()
-
-        elif index == 2:
-            library_filter.set_accept_types( [ "equip" ] )
-            library_filter.set_reject_types( [ None ] )
-            library_filter.reset_filter()
+        if index == 2:
+            self.library_widget.update_types_filter( [ "equip" ],  None )
 
         elif index == 3:
-            library_filter.set_accept_types( [ "ritual" ] )
-            library_filter.set_reject_types( [ None ] )
-            library_filter.reset_filter()
+            self.library_widget.update_types_filter( [ "ritual" ], None )
+
+        else:
+            self.library_widget.update_types_filter( None, None )

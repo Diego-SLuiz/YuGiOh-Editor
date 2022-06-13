@@ -19,7 +19,7 @@ class LibraryWidget ( QtWidgets.QWidget ):
 
         # Text entry to filter the cards in the library
         search_card = QtWidgets.QLineEdit( placeholderText="Search" )
-        search_card.textChanged.connect( self.update_pattern )
+        search_card.textChanged.connect( self.update_text_pattern )
         main_layout.addWidget( search_card )
         self.search_card = search_card
 
@@ -34,15 +34,21 @@ class LibraryWidget ( QtWidgets.QWidget ):
         # List that contains all cards in the library
         cards_list = QtWidgets.QListView()
         cards_list.setModel( library_filter )
-        cards_list.selectionModel().currentChanged.connect( self.current_changed )
+        cards_list.selectionModel().currentChanged.connect( self.current_card_changed )
         main_layout.addWidget( cards_list )
         self.cards_list = cards_list
 
-    def update_pattern ( self, pattern ):
+    def update_types_filter ( self, accept_types, reject_types ):
+        # Update the card type searching filter
+        self.library_filter.set_accept_types( accept_types )
+        self.library_filter.set_reject_types( reject_types )
+        self.library_filter.reset_filter()
+
+    def update_text_pattern ( self, pattern ):
         # Update the text search pattern and filter the cards list
         self.library_filter.setFilterFixedString( pattern )
 
-    def current_changed ( self ):
+    def current_card_changed ( self ):
         # Get the index of the current selected card and emit a signal with it
         current_index = self.cards_list.currentIndex()
         source_index = self.library_filter.mapToSource( current_index )
