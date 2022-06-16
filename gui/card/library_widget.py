@@ -43,6 +43,7 @@ class LibraryWidget ( QtWidgets.QWidget ):
         self.library_filter.set_accept_types( accept_types )
         self.library_filter.set_reject_types( reject_types )
         self.library_filter.reset_filter()
+        self.cards_list.setCurrentIndex( self.library_filter.index( 0, 0, QtCore.QModelIndex() ) )
 
     def update_text_pattern ( self, pattern ):
         # Update the text search pattern and filter the cards list

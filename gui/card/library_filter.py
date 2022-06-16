@@ -12,10 +12,7 @@ class LibraryFilter ( QtCore.QSortFilterProxyModel ):
         # Accept any row where the card in that row satisfy the type requirement and match the search pattern
         card = LIBRARY[ source_row ]
 
-        if self.accept_types and not card.type in self.accept_types:
-            return False
-
-        if self.reject_types and card.type in self.reject_types:
+        if self.accept_types and not card.type in self.accept_types or self.reject_types and card.type in self.reject_types:
             return False
 
         pattern = self.filterRegularExpression()
@@ -38,4 +35,4 @@ class LibraryFilter ( QtCore.QSortFilterProxyModel ):
 
     def reset_filter ( self ):
         # Invalidate the current filter and filter the library
-        self.invalidate()
+        self.invalidateRowsFilter()
