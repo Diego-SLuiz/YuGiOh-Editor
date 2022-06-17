@@ -1,11 +1,26 @@
 from PySide6 import QtWidgets
 from gui.card.base_table_widget import BaseTableWidget
+from gui.utilities.card_search_dialog import CardSearchDialog
 
 class FusionEditor ( QtWidgets.QWidget ):
+
+    search_header = [
+        "Material #1",
+        "Material #2",
+    ]
+
+    search_filter = [
+        [ None, None ],
+        [ None, None ],
+    ]
+
+    target_header = "Result"
+    target_filter = [ None, None ]
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
+        self.card_search = CardSearchDialog( self.search_header, self.search_filter, self.target_header, self.target_filter )
 
     def create_widgets ( self ):
         # Main widget layout
@@ -56,9 +71,11 @@ class FusionEditor ( QtWidgets.QWidget ):
         print( "Del One Fusion" )
 
     def add_many_fusions ( self ):
+        self.card_search.exec()
         print( "Add Many Fusions" )
 
     def del_many_fusions ( self ):
+        self.card_search.exec()
         print( "Del Many Fusions" )
 
     def clear_card_fusions ( self ):

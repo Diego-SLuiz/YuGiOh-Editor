@@ -1,7 +1,7 @@
 from PySide6 import QtWidgets, QtCore
 from scripts.card.references import *
-from gui.utilities.image_dialog import ImageDialog
-from gui.utilities.card_preview import CardPreview
+from gui.utilities.image_editor_dialog import ImageEditorDialog
+from gui.utilities.card_preview_widget import CardPreviewWidget
 
 class DataEditor ( QtWidgets.QWidget ):
 
@@ -20,7 +20,7 @@ class DataEditor ( QtWidgets.QWidget ):
         self.setLayout( main_layout )
 
         # Card preview
-        card_preview = CardPreview()
+        card_preview = CardPreviewWidget()
         card_preview.setMinimumWidth( 140 )
         card_preview.setMaximumWidth( 280 )
         card_preview.setSizePolicy( QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding )
@@ -96,11 +96,11 @@ class DataEditor ( QtWidgets.QWidget ):
         print( f"Get {card.name}" )
 
     def set_artwork ( self ):
-        ImageDialog().exec()
+        ImageEditorDialog().exec()
         print( "Set Artwork" )
 
     def set_miniature ( self ):
-        ImageDialog().exec()
+        ImageEditorDialog().exec()
         print( "Set Miniature" )
 
     def set_title ( self ):

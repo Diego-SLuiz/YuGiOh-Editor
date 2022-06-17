@@ -1,11 +1,24 @@
 from PySide6 import QtWidgets
 from gui.card.base_table_widget import BaseTableWidget
+from gui.utilities.card_search_dialog import CardSearchDialog
 
 class EquipEditor ( QtWidgets.QWidget ):
+
+    search_header = [
+        "Monster",
+    ]
+
+    search_filter = [
+        [ None, [ "spell", "equip", "trap", "ritual" ] ],
+    ]
+
+    target_header = "Equip"
+    target_filter = [ [ "equip" ], None ]
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
+        self.card_search = CardSearchDialog( self.search_header, self.search_filter, self.target_header, self.target_filter )
 
     def create_widgets ( self ):
         # Main widget layout
@@ -56,9 +69,11 @@ class EquipEditor ( QtWidgets.QWidget ):
         print( "Del Equip Card" )
 
     def add_many_cards ( self ):
+        self.card_search.exec()
         print( "Add Many Equips" )
 
     def del_many_cards ( self ):
+        self.card_search.exec()
         print( "Del Many Equips" )
 
     def clear_card_equips ( self ):

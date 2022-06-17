@@ -3,12 +3,13 @@ from PIL.ImageQt import ImageQt
 from PIL import Image, ImageFont, ImageDraw
 from scripts.card.card_editor import Card
 
-class CardPreview ( QtWidgets.QLabel ):
+class CardPreviewWidget ( QtWidgets.QLabel ):
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.preview_image = Image.open( "./assets/images/card_front_normal.png" )
         self.setMinimumSize( QtCore.QSize( 140, 196 ) )
+        self.setMaximumSize( QtCore.QSize( 280, 392 ) )
 
     def resizeEvent ( self, event: QtGui.QResizeEvent ):
         if self.preview_image:

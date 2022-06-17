@@ -1,26 +1,27 @@
 from PySide6 import QtWidgets
 
-class ImageDialog ( QtWidgets.QDialog ):
+class ImageEditorDialog ( QtWidgets.QDialog ):
+
+    # default focus areas
+    FOCUS_AREAS = [
+        "Center",
+        "Top",
+        "Bottom",
+        "Left",
+        "Right",
+        "Top-Left",
+        "Top-Right",
+        "Center-Left",
+        "Center-Right",
+        "Bottom-Left",
+        "Bottom-Right"
+    ]
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
 
     def create_widgets ( self ):
-        FOCUS_AREAS = [
-            "Center",
-            "Top",
-            "Bottom",
-            "Left",
-            "Right",
-            "Top-Left",
-            "Top-Right",
-            "Center-Left",
-            "Center-Right",
-            "Bottom-Left",
-            "Bottom-Right"
-        ]
-
         # Main widget layout
         main_layout = QtWidgets.QHBoxLayout()
         self.setLayout( main_layout )
@@ -80,7 +81,7 @@ class ImageDialog ( QtWidgets.QDialog ):
         config_layout.addWidget( group_preferences, 2 )
 
         select_focus = QtWidgets.QComboBox()
-        select_focus.addItems( FOCUS_AREAS )
+        select_focus.addItems( self.FOCUS_AREAS )
         select_focus.currentIndexChanged.connect( self.set_focus_area )
         preferences_layout.addRow( "Focus Area", select_focus )
 
