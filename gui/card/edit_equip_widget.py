@@ -1,9 +1,11 @@
 from PySide6 import QtWidgets
-from gui.card.base_table_widget import BaseTableWidget
-from gui.utilities.card_search_dialog import CardSearchDialog
+from gui.card.table_widget import TableWidget
+from gui.card.card_search_dialog import CardSearchDialog
+from gui.card.card_selector_dialog import CardSelectorDialog
 
-class EquipEditor ( QtWidgets.QWidget ):
+class EditEquipWidget ( QtWidgets.QWidget ):
 
+    # Default properties for searching many equips
     search_header = [
         "Monster",
     ]
@@ -15,10 +17,22 @@ class EquipEditor ( QtWidgets.QWidget ):
     target_header = "Equip"
     target_filter = [ [ "equip" ], None ]
 
+    # Default properties to add one specific equip
+    select_header = [
+        "Monster",
+        "Equip",
+    ]
+
+    select_filter = [
+        [ None, [ "spell", "equip", "trap", "ritual" ] ],
+        [ [ "equip" ], None ],
+    ]
+
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
         self.card_search = CardSearchDialog( self.search_header, self.search_filter, self.target_header, self.target_filter )
+        self.card_select = CardSelectorDialog( self.select_header, self.select_filter )
 
     def create_widgets ( self ):
         # Main widget layout
@@ -26,7 +40,7 @@ class EquipEditor ( QtWidgets.QWidget ):
         self.setLayout( main_layout )
 
         # Table that contains all cards compatible with the selected equip
-        equips_table = BaseTableWidget( [ "Equip", "Monster" ] )
+        equips_table = TableWidget( [ "Equip", "Monster" ] )
         main_layout.addWidget( equips_table )
         self.equips_table = equips_table
 
@@ -63,9 +77,11 @@ class EquipEditor ( QtWidgets.QWidget ):
         self.equips_table.update_source_data( equips_list )
 
     def add_card_equip ( self ):
+        self.card_select.exec()
         print( "Add Equip Card" )
 
     def del_card_equip ( self ):
+        self.card_select.exec()
         print( "Del Equip Card" )
 
     def add_many_cards ( self ):

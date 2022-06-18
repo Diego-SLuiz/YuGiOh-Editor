@@ -3,7 +3,7 @@ from scripts.card.references import *
 from gui.utilities.image_editor_dialog import ImageEditorDialog
 from gui.utilities.card_preview_widget import CardPreviewWidget
 
-class DataEditor ( QtWidgets.QWidget ):
+class EditDataWidget ( QtWidgets.QWidget ):
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )

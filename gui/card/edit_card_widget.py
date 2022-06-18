@@ -1,9 +1,9 @@
 from PySide6 import QtWidgets
 from gui.card.library_widget import LibraryWidget
-from gui.card.card_data_ui import DataEditor
-from gui.card.card_fusion_ui import FusionEditor
-from gui.card.card_equip_ui import EquipEditor
-from gui.card.card_ritual_ui import RitualEditor
+from gui.card.edit_data_widget import EditDataWidget
+from gui.card.edit_fusion_widget import EditFusionWidget
+from gui.card.edit_equip_widget import EditEquipWidget
+from gui.card.edit_ritual_widget import EditRitualWidget
 
 class CardEditor ( QtWidgets.QWidget ):
 
@@ -28,22 +28,22 @@ class CardEditor ( QtWidgets.QWidget ):
         main_layout.addWidget( editor_tabs, 2 )
 
         # Data editor widget
-        data_editor = DataEditor()
+        data_editor = EditDataWidget()
         library_widget.card_changed.connect( data_editor.card_preview.create_preview_image )
         editor_tabs.addTab( data_editor, "Data" )
 
         # Fusion editor widget
-        fusion_editor = FusionEditor()
+        fusion_editor = EditFusionWidget()
         library_widget.card_changed.connect( fusion_editor.initialize_fusions_table )
         editor_tabs.addTab( fusion_editor, "Fusions" )
 
         # Equip editor widget
-        equip_editor = EquipEditor()
+        equip_editor = EditEquipWidget()
         library_widget.card_changed.connect( equip_editor.initialize_equips_table )
         editor_tabs.addTab( equip_editor, "Equips" )
 
         # Ritual editor widget
-        ritual_editor = RitualEditor()
+        ritual_editor = EditRitualWidget()
         library_widget.card_changed.connect( ritual_editor.initialize_rituals_table )
         editor_tabs.addTab( ritual_editor, "Rituals" )
 

@@ -3,7 +3,7 @@ from scripts.card.card_editor import LIBRARY, Card
 from gui.card.library_model import LibraryModel
 from gui.card.library_filter import LibraryFilter
 
-class CardSelectorWidget ( QtWidgets.QWidget ):
+class CardDropdownWidget ( QtWidgets.QWidget ):
 
     # Signals
     card_selected = QtCore.Signal( Card )

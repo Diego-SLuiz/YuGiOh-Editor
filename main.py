@@ -1,7 +1,7 @@
 from PySide6 import QtWidgets, QtGui, QtCore
 from scripts.card.card_editor import Card, LIBRARY
 from gui.card.library_model import LibraryModel
-from gui.card.card_editor_ui import CardEditor
+from gui.card.edit_card_widget import CardEditor
 
 class SearchFiles ( QtWidgets.QDialog ):
 

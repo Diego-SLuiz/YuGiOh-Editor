@@ -1,11 +1,30 @@
 from PySide6 import QtWidgets
-from gui.card.base_table_widget import BaseTableWidget
+from gui.card.table_widget import TableWidget
+from gui.card.card_selector_dialog import CardSelectorDialog
 
-class RitualEditor ( QtWidgets.QWidget ):
+class EditRitualWidget ( QtWidgets.QWidget ):
+
+    # Default properties to add one specific ritual monster
+    select_header = [
+        "Spell",
+        "Tribute #1",
+        "Tribute #2",
+        "Tribute #3",
+        "Ritual",
+    ]
+
+    select_filter = [
+        [ [ "ritual" ], None ],
+        [ None, [ "spell", "trap", "ritual", "equip" ] ],
+        [ None, [ "spell", "trap", "ritual", "equip" ] ],
+        [ None, [ "spell", "trap", "ritual", "equip" ] ],
+        [ None, [ "spell", "trap", "ritual", "equip" ] ],
+    ]
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
+        self.card_select = CardSelectorDialog( self.select_header, self.select_filter )
 
     def create_widgets ( self ):
         # Main widget layout
@@ -13,7 +32,7 @@ class RitualEditor ( QtWidgets.QWidget ):
         self.setLayout( main_layout )
 
         # Table that contains all rituals recipes of the selected card
-        rituals_table = BaseTableWidget( [ "Ritual", "Tribute #1", "Tribute #2", "Tribute #3", "Result" ] )
+        rituals_table = TableWidget( [ "Ritual", "Tribute #1", "Tribute #2", "Tribute #3", "Result" ] )
         main_layout.addWidget( rituals_table )
         self.rituals_table = rituals_table
 
@@ -42,9 +61,11 @@ class RitualEditor ( QtWidgets.QWidget ):
         self.rituals_table.update_source_data( rituals_tributes )
 
     def add_card_ritual ( self ):
+        self.card_select.exec()
         print( "Add Card Ritual" )
 
     def del_card_ritual ( self ):
+        self.card_select.exec()
         print( "Del Card Ritual" )
 
     def clear_card_rituals ( self ):

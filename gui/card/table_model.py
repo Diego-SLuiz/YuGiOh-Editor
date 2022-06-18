@@ -1,7 +1,7 @@
 from PySide6 import QtCore
 from gui.card.library_model import LibraryModel
 
-class BaseTableModel ( QtCore.QAbstractTableModel ):
+class TableModel ( QtCore.QAbstractTableModel ):
 
     def __init__ ( self, source_data, header_label, *args, **kwargs ):
         super().__init__( *args, **kwargs )

@@ -1,9 +1,11 @@
 from PySide6 import QtWidgets
-from gui.card.base_table_widget import BaseTableWidget
-from gui.utilities.card_search_dialog import CardSearchDialog
+from gui.card.table_widget import TableWidget
+from gui.card.card_search_dialog import CardSearchDialog
+from gui.card.card_selector_dialog import CardSelectorDialog
 
-class FusionEditor ( QtWidgets.QWidget ):
+class EditFusionWidget ( QtWidgets.QWidget ):
 
+    # Default properties for searching many fusions
     search_header = [
         "Material #1",
         "Material #2",
@@ -17,10 +19,24 @@ class FusionEditor ( QtWidgets.QWidget ):
     target_header = "Result"
     target_filter = [ None, None ]
 
+    # Default properties to add one specific fusion
+    select_header = [
+        "Material #1",
+        "Material #2",
+        "Result",
+    ]
+
+    select_filter = [
+        [ None, None ],
+        [ None, None ],
+        [ None, None ],
+    ]
+
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
         self.card_search = CardSearchDialog( self.search_header, self.search_filter, self.target_header, self.target_filter )
+        self.card_select = CardSelectorDialog( self.select_header, self.select_filter )
 
     def create_widgets ( self ):
         # Main widget layout
@@ -28,7 +44,7 @@ class FusionEditor ( QtWidgets.QWidget ):
         self.setLayout( main_layout )
 
         # Table that contains all fusions of the selected card
-        fusions_table = BaseTableWidget( [ "Material #1", "Material #2", "Result" ] )
+        fusions_table = TableWidget( [ "Material #1", "Material #2", "Result" ] )
         main_layout.addWidget( fusions_table )
         self.fusions_table = fusions_table
 
@@ -65,9 +81,11 @@ class FusionEditor ( QtWidgets.QWidget ):
         self.fusions_table.update_source_data( fusions_list )
 
     def add_card_fusion ( self ):
+        self.card_select.exec()
         print( "Add One Fusion" )
 
     def del_card_fusion ( self ):
+        self.card_select.exec()
         print( "Del One Fusion" )
 
     def add_many_fusions ( self ):

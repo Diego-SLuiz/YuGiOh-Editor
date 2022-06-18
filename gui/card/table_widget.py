@@ -1,8 +1,8 @@
 from PySide6 import QtWidgets
-from gui.card.base_table_model import BaseTableModel
-from gui.card.base_table_filter import BaseTableFilter
+from gui.card.table_model import TableModel
+from gui.card.table_filter import TableFilter
 
-class BaseTableWidget ( QtWidgets.QWidget ):
+class TableWidget ( QtWidgets.QWidget ):
 
     def __init__ ( self, header_label, *args, **kwargs ):
         super().__init__( *args, **kwargs )
@@ -16,10 +16,10 @@ class BaseTableWidget ( QtWidgets.QWidget ):
         self.setLayout( main_layout )
 
         # Card table model with filter features
-        table_model = BaseTableModel( [], self.header_label )
+        table_model = TableModel( [], self.header_label )
         self.table_model = table_model
 
-        table_filter = BaseTableFilter()
+        table_filter = TableFilter()
         table_filter.setSourceModel( table_model )
         self.table_filter = table_filter
 

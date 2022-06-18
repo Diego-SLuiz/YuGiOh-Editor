@@ -1,6 +1,6 @@
 from PySide6 import QtCore
 
-class BaseTableFilter ( QtCore.QSortFilterProxyModel ):
+class TableFilter ( QtCore.QSortFilterProxyModel ):
 
     def filterAcceptsRow ( self, source_row, source_parent ):
         # Accepts any row that any column data match pattern

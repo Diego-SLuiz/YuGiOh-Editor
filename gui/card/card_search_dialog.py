@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets, QtCore
 from scripts.card.references import TYPES, ATTRIBUTES, GUARDIANS
-from gui.utilities.card_selector_widget import CardSelectorWidget, CardSelectorWidget
+from gui.card.card_dropdown_widget import CardDropdownWidget
 from gui.utilities.card_preview_widget import CardPreviewWidget
 
 class SearchGroup ( QtWidgets.QGroupBox ):
@@ -21,7 +21,7 @@ class SearchGroup ( QtWidgets.QGroupBox ):
         self.setLayout( layout )
 
         # Card search search options
-        select_card = CardSelectorWidget()
+        select_card = CardDropdownWidget()
         select_card.change_filter_type( self.search_filter )
         layout.addRow( "Number", select_card )
         self.select_card = select_card
@@ -121,7 +121,7 @@ class CardSearchDialog ( QtWidgets.QDialog ):
         target_layout = QtWidgets.QVBoxLayout()
         target_group.setLayout( target_layout )
 
-        select_card = CardSelectorWidget()
+        select_card = CardDropdownWidget()
         select_card.change_filter_type( self.target_filter )
         target_layout.addWidget( select_card, alignment=QtCore.Qt.AlignmentFlag.AlignTop )
 
