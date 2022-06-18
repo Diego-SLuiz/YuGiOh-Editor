@@ -1,4 +1,4 @@
-from PySide6 import QtWidgets
+from PySide6 import QtWidgets, QtCore
 from gui.card.card_dropdown_widget import CardDropdownWidget
 from gui.utilities.card_preview_widget import CardPreviewWidget
 
@@ -17,10 +17,12 @@ class SelectCard ( QtWidgets.QGroupBox ):
         # Card dropdown widget
         select_card = CardDropdownWidget()
         select_card.change_filter_type( self.search_filter )
-        layout.addWidget( select_card )
+        layout.addWidget( select_card, alignment=QtCore.Qt.AlignmentFlag.AlignTop )
 
         # Card preview widget
         card_preview = CardPreviewWidget()
+        card_preview.setSizePolicy( QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding )
+        card_preview.setAlignment( QtCore.Qt.AlignmentFlag.AlignCenter )
         select_card.card_selected.connect( card_preview.create_preview_image )
         layout.addWidget( card_preview )
 
@@ -44,7 +46,8 @@ class CardSelectorDialog ( QtWidgets.QDialog ):
 
         # Buttons actions group
         buttons_group = QtWidgets.QGroupBox()
-        layout.addWidget( buttons_group )
+        buttons_group.setSizePolicy( QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Maximum )
+        layout.addWidget( buttons_group, 1, 0, 1, index + 1 )
 
         buttons_layout = QtWidgets.QHBoxLayout()
         buttons_group.setLayout( buttons_layout )

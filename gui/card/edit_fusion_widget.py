@@ -35,8 +35,8 @@ class EditFusionWidget ( QtWidgets.QWidget ):
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
-        self.card_search = CardSearchDialog( self.search_header, self.search_filter, self.target_header, self.target_filter )
-        self.card_select = CardSelectorDialog( self.select_header, self.select_filter )
+        self.card_search = CardSearchDialog( self.search_header, self.search_filter, self.target_header, self.target_filter, self )
+        self.card_select = CardSelectorDialog( self.select_header, self.select_filter, self )
 
     def create_widgets ( self ):
         # Main widget layout

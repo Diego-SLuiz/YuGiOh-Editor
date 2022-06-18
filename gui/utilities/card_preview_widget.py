@@ -9,7 +9,6 @@ class CardPreviewWidget ( QtWidgets.QLabel ):
         super().__init__( *args, **kwargs )
         self.preview_image = Image.open( "./assets/images/card_front_normal.png" )
         self.setMinimumSize( QtCore.QSize( 140, 196 ) )
-        self.setMaximumSize( QtCore.QSize( 280, 392 ) )
 
     def resizeEvent ( self, event: QtGui.QResizeEvent ):
         if self.preview_image:
@@ -47,7 +46,14 @@ class CardPreviewWidget ( QtWidgets.QLabel ):
 
     def resize_preview_pixmap ( self ):
         original_image = self.preview_image
+        maximum_size = QtCore.QSize( 280, 392 )
         request_size = self.size()
+
+        if request_size.width() > maximum_size.width():
+            request_size.setWidth( maximum_size.width() )
+        if request_size.height() > maximum_size.height():
+            request_size.setHeight( maximum_size.height() )
+
         aspect_mode = QtCore.Qt.AspectRatioMode.KeepAspectRatio
         transform_mode = QtCore.Qt.TransformationMode.FastTransformation
         resized_pixmap = QtGui.QPixmap.fromImage( ImageQt( original_image ) )

@@ -112,6 +112,7 @@ class CardSearchDialog ( QtWidgets.QDialog ):
         # Search card fields
         for index, search, header in zip( range( len( self.search_filter ) ), self.search_filter, self.search_header or [ "Default" ] ):
             search_group = SearchGroup( search, header )
+            search_group.setMinimumWidth( 250 )
             layout.addWidget( search_group, 0, index )
 
         # Card target group
@@ -126,6 +127,8 @@ class CardSearchDialog ( QtWidgets.QDialog ):
         target_layout.addWidget( select_card, alignment=QtCore.Qt.AlignmentFlag.AlignTop )
 
         card_preview = CardPreviewWidget()
+        card_preview.setAlignment( QtCore.Qt.AlignmentFlag.AlignCenter )
+        card_preview.setSizePolicy( QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding )
         select_card.card_selected.connect( card_preview.create_preview_image )
         target_layout.addWidget( card_preview )
 

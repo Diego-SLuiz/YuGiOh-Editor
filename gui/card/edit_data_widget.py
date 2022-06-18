@@ -8,6 +8,7 @@ class EditDataWidget ( QtWidgets.QWidget ):
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
+        self.image_editor = ImageEditorDialog( self )
 
     def create_widgets ( self ):
         # Card default properties
@@ -21,8 +22,6 @@ class EditDataWidget ( QtWidgets.QWidget ):
 
         # Card preview
         card_preview = CardPreviewWidget()
-        card_preview.setMinimumWidth( 140 )
-        card_preview.setMaximumWidth( 280 )
         card_preview.setSizePolicy( QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding )
         card_preview.setAlignment( QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignTop )
         main_layout.addWidget( card_preview )
@@ -96,11 +95,11 @@ class EditDataWidget ( QtWidgets.QWidget ):
         print( f"Get {card.name}" )
 
     def set_artwork ( self ):
-        ImageEditorDialog().exec()
+        self.image_editor.exec()
         print( "Set Artwork" )
 
     def set_miniature ( self ):
-        ImageEditorDialog().exec()
+        self.image_editor.exec()
         print( "Set Miniature" )
 
     def set_title ( self ):

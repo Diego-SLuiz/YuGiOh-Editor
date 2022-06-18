@@ -1,4 +1,4 @@
-from PySide6 import QtWidgets
+from PySide6 import QtWidgets, QtCore
 
 class ImageEditorDialog ( QtWidgets.QDialog ):
 
@@ -20,6 +20,7 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
+        self.resize( QtCore.QSize( 640, 480 ) )
 
     def create_widgets ( self ):
         # Main widget layout

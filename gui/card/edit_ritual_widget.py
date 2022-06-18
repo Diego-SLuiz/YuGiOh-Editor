@@ -24,7 +24,7 @@ class EditRitualWidget ( QtWidgets.QWidget ):
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
-        self.card_select = CardSelectorDialog( self.select_header, self.select_filter )
+        self.card_select = CardSelectorDialog( self.select_header, self.select_filter, self )
 
     def create_widgets ( self ):
         # Main widget layout
