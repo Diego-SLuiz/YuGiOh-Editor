@@ -1,7 +1,7 @@
 from PySide6 import QtWidgets, QtGui, QtCore
 from scripts.card.card_editor import Card, LIBRARY
 from gui.card.library_model import LibraryModel
-from gui.card.edit_card_widget import CardEditor
+from gui.card.edit_card_widget import EditCardWidget
 
 class SearchFiles ( QtWidgets.QDialog ):
 
@@ -85,7 +85,7 @@ class MainWindow ( QtWidgets.QMainWindow ):
         main_widget = QtWidgets.QStackedWidget()
         self.setCentralWidget( main_widget )
 
-        card_editor = CardEditor()
+        card_editor = EditCardWidget()
         self.path_changed.connect( LibraryModel.reset_all_models )
         main_widget.addWidget( card_editor )
 

@@ -39,11 +39,20 @@ class LibraryWidget ( QtWidgets.QWidget ):
         self.cards_list = cards_list
 
     def update_types_filter ( self, accept_types, reject_types ):
-        # Update the card type searching filter
+        # Update the card type searching filter and select the first card of library
+        self.library_filter.reset_filter()
         self.library_filter.set_accept_types( accept_types )
         self.library_filter.set_reject_types( reject_types )
-        self.library_filter.reset_filter()
-        self.cards_list.setCurrentIndex( self.library_filter.index( 0, 0, QtCore.QModelIndex() ) )
+        self.library_filter.invalidateRowsFilter()
+
+        current_index = self.cards_list.currentIndex()
+        first_index = self.library_filter.index( 0, 0, QtCore.QModelIndex() )
+
+        if current_index.row() == first_index.row():
+            self.current_card_changed()
+
+        else:
+            self.cards_list.setCurrentIndex( first_index )
 
     def update_text_pattern ( self, pattern ):
         # Update the text search pattern and filter the cards list
@@ -53,5 +62,9 @@ class LibraryWidget ( QtWidgets.QWidget ):
         # Get the index of the current selected card and emit a signal with it
         current_index = self.cards_list.currentIndex()
         source_index = self.library_filter.mapToSource( current_index )
+
+        if not source_index.isValid():
+            return
+
         card_target = LIBRARY[ source_index.row() ]
         self.card_changed.emit( card_target )

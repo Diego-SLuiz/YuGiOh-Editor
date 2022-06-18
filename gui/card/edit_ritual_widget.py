@@ -25,6 +25,7 @@ class EditRitualWidget ( QtWidgets.QWidget ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
         self.card_select = CardSelectorDialog( self.select_header, self.select_filter, self )
+        self.working_card = None
 
     def create_widgets ( self ):
         # Main widget layout
@@ -56,7 +57,14 @@ class EditRitualWidget ( QtWidgets.QWidget ):
         clear_card.clicked.connect( self.clear_card_rituals )
         buttons_layout.addWidget( clear_card )
 
-    def initialize_rituals_table ( self, card ):
+    def change_working_card ( self, card ):
+        # Update the current working card
+        self.working_card = card
+        self.initialize_rituals_table()
+
+    def initialize_rituals_table ( self ):
+        # Initialize the table containing the card rituals
+        card = self.working_card
         rituals_tributes = [ card.rituals_tributes ]
         self.rituals_table.update_source_data( rituals_tributes )
 

@@ -33,6 +33,7 @@ class EditEquipWidget ( QtWidgets.QWidget ):
         self.create_widgets()
         self.card_search = CardSearchDialog( self.search_header, self.search_filter, self.target_header, self.target_filter, self )
         self.card_select = CardSelectorDialog( self.select_header, self.select_filter, self )
+        self.working_card = None
 
     def create_widgets ( self ):
         # Main widget layout
@@ -72,7 +73,14 @@ class EditEquipWidget ( QtWidgets.QWidget ):
         clear_card.clicked.connect( self.clear_card_equips )
         buttons_layout.addWidget( clear_card )
 
-    def initialize_equips_table ( self, card ):
+    def change_working_card ( self, card ):
+        # Update the current working card
+        self.working_card = card
+        self.initialize_equips_table()
+
+    def initialize_equips_table ( self ):
+        # Initialize the table containing the card equips
+        card = self.working_card
         equips_list = [ [ card.number + 1, x ] for x in card.equips_list ]
         self.equips_table.update_source_data( equips_list )
 

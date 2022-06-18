@@ -53,4 +53,4 @@ class CardDropdownWidget ( QtWidgets.QWidget ):
     def change_filter_type ( self, types ):
         self.library_filter.set_accept_types( types[0] )
         self.library_filter.set_reject_types( types[1] )
-        self.library_filter.reset_filter()
+        self.library_filter.invalidateRowsFilter()

@@ -37,6 +37,7 @@ class EditFusionWidget ( QtWidgets.QWidget ):
         self.create_widgets()
         self.card_search = CardSearchDialog( self.search_header, self.search_filter, self.target_header, self.target_filter, self )
         self.card_select = CardSelectorDialog( self.select_header, self.select_filter, self )
+        self.working_card = None
 
     def create_widgets ( self ):
         # Main widget layout
@@ -76,7 +77,14 @@ class EditFusionWidget ( QtWidgets.QWidget ):
         clear_card.clicked.connect( self.clear_card_fusions )
         buttons_layout.addWidget( clear_card )
 
-    def initialize_fusions_table ( self, card ):
+    def change_working_card ( self, card ):
+        # Update the current working card
+        self.working_card = card
+        self.initialize_fusions_table()
+
+    def initialize_fusions_table ( self ):
+        # Initialize the table containing the card fusions
+        card = self.working_card
         fusions_list = [ [ card.number + 1, a, b ] for a, b in card.fusions_list ]
         self.fusions_table.update_source_data( fusions_list )
 
