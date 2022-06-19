@@ -38,12 +38,10 @@ class LibraryWidget ( QtWidgets.QWidget ):
         main_layout.addWidget( cards_list )
         self.cards_list = cards_list
 
-    def update_types_filter ( self, accept_types, reject_types ):
+    def change_types_filter ( self, types_filter ):
         # Update the card type searching filter and select the first card of library
-        self.library_filter.reset_filter()
-        self.library_filter.set_accept_types( accept_types )
-        self.library_filter.set_reject_types( reject_types )
-        self.library_filter.invalidateRowsFilter()
+        self.library_filter.reset_types_filter()
+        self.library_filter.change_types_filter( types_filter )
 
         current_index = self.cards_list.currentIndex()
         first_index = self.library_filter.index( 0, 0, QtCore.QModelIndex() )

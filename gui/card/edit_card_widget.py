@@ -1,4 +1,5 @@
 from PySide6 import QtWidgets
+from gui.card.card_enums import TypesFilter
 from gui.card.library_widget import LibraryWidget
 from gui.card.edit_data_widget import EditDataWidget
 from gui.card.edit_fusion_widget import EditFusionWidget
@@ -52,13 +53,13 @@ class EditCardWidget ( QtWidgets.QWidget ):
     def load_editor_pages ( self, index ):
         # Filter the library to work with the appropriate card types
         if index == 2:
-            self.library_widget.update_types_filter( [ "equip" ],  None )
+            self.library_widget.change_types_filter( TypesFilter.EQUIP )
 
         elif index == 3:
-            self.library_widget.update_types_filter( [ "ritual" ], None )
+            self.library_widget.change_types_filter( TypesFilter.RITUAL )
 
         else:
-            self.library_widget.update_types_filter( None, None )
+            self.library_widget.change_types_filter( TypesFilter.DEFAULT )
 
     def update_editor_pages ( self, card ):
         # Update the data of the current active editor page

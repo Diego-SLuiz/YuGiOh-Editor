@@ -1,39 +1,37 @@
 from PySide6 import QtWidgets
+from gui.card.card_enums import TypesFilter
 from gui.card.table_widget import TableWidget
 from gui.card.card_search_dialog import CardSearchDialog
 from gui.card.card_selector_dialog import CardSelectorDialog
 
 class EditEquipWidget ( QtWidgets.QWidget ):
 
-    # Default properties for searching many equips
-    search_header = [
-        "Monster",
-    ]
-
-    search_filter = [
-        [ None, [ "spell", "equip", "trap", "ritual" ] ],
-    ]
-
+    # Add many equips search dialog parameters
+    search_headers = [ "Monster" ]
+    search_filters = [ TypesFilter.MONSTER_ONLY ]
     target_header = "Equip"
-    target_filter = [ [ "equip" ], None ]
+    target_filter = TypesFilter.EQUIP
 
-    # Default properties to add one specific equip
-    select_header = [
-        "Monster",
-        "Equip",
-    ]
-
-    select_filter = [
-        [ None, [ "spell", "equip", "trap", "ritual" ] ],
-        [ [ "equip" ], None ],
-    ]
+    # Add one equip selector dialog parameters
+    selector_headers = [ "Monster", "Equip" ]
+    selector_filters = [ TypesFilter.MONSTER_ONLY, TypesFilter.EQUIP ]
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
-        self.card_search = CardSearchDialog( self.search_header, self.search_filter, self.target_header, self.target_filter, self )
-        self.card_select = CardSelectorDialog( self.select_header, self.select_filter, self )
         self.working_card = None
+
+        # Add one equip dialog
+        self.card_select = CardSelectorDialog( self.selector_headers, self.selector_filters, self )
+
+        # Add many equips dialog
+        self.card_search = CardSearchDialog(
+            self.search_headers,
+            self.search_filters,
+            self.target_header,
+            self.target_filter,
+            self
+        )
 
     def create_widgets ( self ):
         # Main widget layout

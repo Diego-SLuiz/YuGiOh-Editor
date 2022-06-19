@@ -1,4 +1,5 @@
 from PySide6 import QtWidgets, QtCore
+from gui.card.card_enums import TypesFilter
 from scripts.card.references import TYPES, ATTRIBUTES, GUARDIANS
 from gui.card.card_dropdown_widget import CardDropdownWidget
 from gui.utilities.card_preview_widget import CardPreviewWidget
@@ -10,9 +11,9 @@ class SearchGroup ( QtWidgets.QGroupBox ):
     card_attributes = [ "None" ] + [ x.capitalize() for x in ATTRIBUTES ]
     card_guardians = [ "None" ] + [ x.capitalize() for x in GUARDIANS ]
 
-    def __init__ ( self, search_filter, *args, **kwargs ):
+    def __init__ ( self, types_filter, *args, **kwargs ):
         super().__init__( *args, **kwargs )
-        self.search_filter = search_filter
+        self.types_filter = types_filter
         self.create_widgets()
 
     def create_widgets ( self ):
@@ -22,7 +23,7 @@ class SearchGroup ( QtWidgets.QGroupBox ):
 
         # Card search search options
         select_card = CardDropdownWidget()
-        select_card.change_filter_type( self.search_filter )
+        select_card.change_types_filter( self.types_filter )
         layout.addRow( "Number", select_card )
         self.select_card = select_card
 
@@ -96,11 +97,19 @@ class SearchGroup ( QtWidgets.QGroupBox ):
 
 class CardSearchDialog ( QtWidgets.QDialog ):
 
-    def __init__ ( self, search_header, search_filter, target_header, target_filter, *args, **kwargs ):
+    def __init__ (
+        self,
+        search_headers=[ "Default" ],
+        search_filters=[ TypesFilter.DEFAULT ],
+        target_header="Default",
+        target_filter=TypesFilter.DEFAULT,
+        *args,
+        **kwargs
+    ):
         super().__init__( *args, **kwargs )
-        self.search_header = search_header
-        self.search_filter = search_filter
+        self.search_headers = search_headers
         self.target_header = target_header
+        self.search_filters = search_filters
         self.target_filter = target_filter
         self.create_widgets()
 
@@ -109,9 +118,9 @@ class CardSearchDialog ( QtWidgets.QDialog ):
         layout = QtWidgets.QGridLayout()
         self.setLayout( layout )
 
-        # Search card fields
-        for index, search, header in zip( range( len( self.search_filter ) ), self.search_filter, self.search_header or [ "Default" ] ):
-            search_group = SearchGroup( search, header )
+        # Create card search group fields
+        for index in range( len( self.search_headers ) ):
+            search_group = SearchGroup( self.search_filters[ index ], self.search_headers[ index ] )
             search_group.setMinimumWidth( 250 )
             layout.addWidget( search_group, 0, index )
 
@@ -123,7 +132,7 @@ class CardSearchDialog ( QtWidgets.QDialog ):
         target_group.setLayout( target_layout )
 
         select_card = CardDropdownWidget()
-        select_card.change_filter_type( self.target_filter )
+        select_card.change_types_filter( self.target_filter )
         target_layout.addWidget( select_card, alignment=QtCore.Qt.AlignmentFlag.AlignTop )
 
         card_preview = CardPreviewWidget()

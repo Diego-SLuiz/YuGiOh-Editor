@@ -36,7 +36,7 @@ class CardDropdownWidget ( QtWidgets.QWidget ):
 
         # Dropdown with a card list
         select_card = QtWidgets.QComboBox()
-        select_card.currentIndexChanged.connect( self.get_target )
+        select_card.currentIndexChanged.connect( self.get_selected_card )
         select_card.setIconSize( QtCore.QSize( 40, 32 ) )
         select_card.setEditable( True )
         select_card.setCompleter( card_completer )
@@ -44,13 +44,11 @@ class CardDropdownWidget ( QtWidgets.QWidget ):
         select_card.setCurrentIndex( 0 )
         layout.addWidget( select_card )
 
-    def get_target ( self, row ):
+    def get_selected_card ( self, row ):
         current_index = self.library_filter.index( row, 0 )
         source_index = self.library_filter.mapToSource( current_index )
         card = LIBRARY[ source_index.row() ]
         self.card_selected.emit( card )
 
-    def change_filter_type ( self, types ):
-        self.library_filter.set_accept_types( types[0] )
-        self.library_filter.set_reject_types( types[1] )
-        self.library_filter.invalidateRowsFilter()
+    def change_types_filter ( self, types_filter ):
+        self.library_filter.change_types_filter( types_filter )

@@ -1,12 +1,13 @@
 from PySide6 import QtWidgets, QtCore
 from gui.card.card_dropdown_widget import CardDropdownWidget
+from gui.card.card_enums import TypesFilter
 from gui.utilities.card_preview_widget import CardPreviewWidget
 
 class SelectCard ( QtWidgets.QGroupBox ):
 
-    def __init__ ( self, search_filter, *args, **kwargs ):
+    def __init__ ( self, types_filter, *args, **kwargs ):
         super().__init__( *args, **kwargs )
-        self.search_filter = search_filter
+        self.types_filter = types_filter
         self.create_widgets()
 
     def create_widgets ( self ):
@@ -16,7 +17,7 @@ class SelectCard ( QtWidgets.QGroupBox ):
 
         # Card dropdown widget
         select_card = CardDropdownWidget()
-        select_card.change_filter_type( self.search_filter )
+        select_card.change_types_filter( self.types_filter )
         layout.addWidget( select_card, alignment=QtCore.Qt.AlignmentFlag.AlignTop )
 
         # Card preview widget
@@ -28,10 +29,16 @@ class SelectCard ( QtWidgets.QGroupBox ):
 
 class CardSelectorDialog ( QtWidgets.QDialog ):
 
-    def __init__ ( self, group_header=[ "Default" ], group_filter=[ [ None, None ] ], *args, **kwargs ):
+    def __init__ (
+        self,
+        selector_headers=[ "Default" ],
+        selector_filters=[ TypesFilter.DEFAULT ],
+        *args,
+        **kwargs
+    ):
         super().__init__( *args, **kwargs )
-        self.group_header = group_header
-        self.group_filter = group_filter
+        self.selector_headers = selector_headers
+        self.selector_filters = selector_filters
         self.create_widgets()
 
     def create_widgets ( self ):
@@ -40,8 +47,8 @@ class CardSelectorDialog ( QtWidgets.QDialog ):
         self.setLayout( layout )
 
         # Create dropdown fields to select a card
-        for index, header, search in zip( range( len( self.group_header ) ), self.group_header, self.group_filter ):
-            select_card = SelectCard( search, header )
+        for index in range( len( self.selector_headers ) ):
+            select_card = SelectCard( self.selector_filters[ index ], self.selector_headers[ index ] )
             layout.addWidget( select_card, 0, index )
 
         # Buttons actions group

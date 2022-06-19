@@ -1,43 +1,37 @@
 from PySide6 import QtWidgets
+from gui.card.card_enums import TypesFilter
 from gui.card.table_widget import TableWidget
 from gui.card.card_search_dialog import CardSearchDialog
 from gui.card.card_selector_dialog import CardSelectorDialog
 
 class EditFusionWidget ( QtWidgets.QWidget ):
 
-    # Default properties for searching many fusions
-    search_header = [
-        "Material #1",
-        "Material #2",
-    ]
-
-    search_filter = [
-        [ None, None ],
-        [ None, None ],
-    ]
-
+    # Add many fusions search dialog parameters
+    search_headers = [ "Material #1", "Material #2" ]
+    search_filters = [ TypesFilter.DEFAULT, TypesFilter.DEFAULT ]
     target_header = "Result"
-    target_filter = [ None, None ]
+    target_filter = TypesFilter.DEFAULT
 
-    # Default properties to add one specific fusion
-    select_header = [
-        "Material #1",
-        "Material #2",
-        "Result",
-    ]
-
-    select_filter = [
-        [ None, None ],
-        [ None, None ],
-        [ None, None ],
-    ]
+    # Add one fusion selector dialog parameters
+    selector_headers = [ "Material #1", "Material #2", "Result" ]
+    selector_filters = [ TypesFilter.DEFAULT, TypesFilter.DEFAULT, TypesFilter.DEFAULT ]
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
-        self.card_search = CardSearchDialog( self.search_header, self.search_filter, self.target_header, self.target_filter, self )
-        self.card_select = CardSelectorDialog( self.select_header, self.select_filter, self )
         self.working_card = None
+
+        # Add one fusion dialog
+        self.card_select = CardSelectorDialog( self.selector_headers, self.selector_filters, self )
+
+        # Add many fusions dialog
+        self.card_search = CardSearchDialog(
+            self.search_headers,
+            self.search_filters,
+            self.target_header,
+            self.target_filter,
+            self
+        )
 
     def create_widgets ( self ):
         # Main widget layout

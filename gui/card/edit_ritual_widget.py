@@ -1,11 +1,12 @@
 from PySide6 import QtWidgets
+from gui.card.card_enums import TypesFilter
 from gui.card.table_widget import TableWidget
 from gui.card.card_selector_dialog import CardSelectorDialog
 
 class EditRitualWidget ( QtWidgets.QWidget ):
 
-    # Default properties to add one specific ritual monster
-    select_header = [
+    # Add a ritual recipe dialog parameters
+    selector_headers = [
         "Spell",
         "Tribute #1",
         "Tribute #2",
@@ -13,19 +14,21 @@ class EditRitualWidget ( QtWidgets.QWidget ):
         "Ritual",
     ]
 
-    select_filter = [
-        [ [ "ritual" ], None ],
-        [ None, [ "spell", "trap", "ritual", "equip" ] ],
-        [ None, [ "spell", "trap", "ritual", "equip" ] ],
-        [ None, [ "spell", "trap", "ritual", "equip" ] ],
-        [ None, [ "spell", "trap", "ritual", "equip" ] ],
+    selector_filters = [
+        TypesFilter.RITUAL,
+        TypesFilter.MONSTER_ONLY,
+        TypesFilter.MONSTER_ONLY,
+        TypesFilter.MONSTER_ONLY,
+        TypesFilter.MONSTER_ONLY,
     ]
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
-        self.card_select = CardSelectorDialog( self.select_header, self.select_filter, self )
         self.working_card = None
+
+        # Add one ritual recipe dialog
+        self.card_select = CardSelectorDialog( self.selector_headers, self.selector_filters, self )
 
     def create_widgets ( self ):
         # Main widget layout
