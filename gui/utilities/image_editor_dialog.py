@@ -1,4 +1,59 @@
-from PySide6 import QtWidgets, QtCore
+from PySide6 import QtWidgets, QtCore, QtGui
+from PIL import Image, ImageQt
+
+class EditingImage ( QtWidgets.QLabel ):
+
+    def __init__ ( self, *args, **kwargs ):
+        super().__init__( *args, **kwargs )
+        self.original_image = None
+        self.current_image = None
+        self.focus_value = 0
+        self.focus_area = "center"
+
+    def resizeEvent ( self, event ):
+        self.resize_pixmap()
+        super().resizeEvent( event )
+
+    def change_pixmap ( self, pixmap ):
+        self.original_image = pixmap
+        self.current_image = pixmap
+        self.setPixmap( pixmap )
+        self.resize_pixmap()
+
+    def resize_pixmap ( self ):
+        if not self.current_image:
+            return
+
+        new_size = self.size()
+        transform_mode = QtCore.Qt.TransformationMode.FastTransformation
+        aspect_mode = QtCore.Qt.AspectRatioMode.KeepAspectRatio
+
+        pixmap = self.current_image
+        pixmap = pixmap.scaled( new_size, aspect_mode, transform_mode )
+
+        self.setPixmap( pixmap )
+
+    def apply_focus ( self ):
+        if self.focus_value == 100:
+            return
+
+        current_size = self.original_image.rect().size()
+        width, height = current_size.toTuple()
+        offset_top = self.focus_value / 100 * height // 2
+        offset_bottom = height - offset_top
+        offset_left = self.focus_value / 100 * width // 2
+        offset_right = width - offset_left
+
+        transform_mode = QtCore.Qt.TransformationMode.FastTransformation
+        aspect_mode = QtCore.Qt.AspectRatioMode.KeepAspectRatio
+
+        working_image = ImageQt.fromqpixmap( self.original_image )
+        working_image = working_image.crop( ( offset_left, offset_top, offset_right, offset_bottom ) )
+        working_image = QtGui.QPixmap.fromImage( ImageQt.ImageQt( working_image ) )
+        working_image = working_image.scaled( self.size(), aspect_mode, transform_mode )
+
+        self.current_image = working_image
+        self.setPixmap( working_image )
 
 class ImageEditorDialog ( QtWidgets.QDialog ):
 
@@ -11,8 +66,6 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         "Right",
         "Top-Left",
         "Top-Right",
-        "Center-Left",
-        "Center-Right",
         "Bottom-Left",
         "Bottom-Right"
     ]
@@ -28,8 +81,12 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         self.setLayout( main_layout )
 
         # Working image
-        main_image = QtWidgets.QLabel()
+        main_image = EditingImage()
+        main_image.setSizePolicy( QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding )
+        main_image.setMinimumSize( QtCore.QSize( 300, 300 ) )
+        main_image.setAlignment( QtCore.Qt.AlignmentFlag.AlignCenter )
         main_layout.addWidget( main_image, 3 )
+        self.main_image = main_image
 
         # Image config layout
         config_layout = QtWidgets.QVBoxLayout()
@@ -94,6 +151,7 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         button_layout = QtWidgets.QHBoxLayout()
         group_button = QtWidgets.QGroupBox()
         group_button.setLayout( button_layout )
+        group_button.setSizePolicy( QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Maximum )
         config_layout.addWidget( group_button, 1 )
 
         button_browse = QtWidgets.QPushButton( "Browse" )
@@ -128,11 +186,14 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
     def set_focus_area ( self ):
         print( "Focus Area" )
 
-    def set_focus_value ( self ):
-        print( "Focus Value" )
+    def set_focus_value ( self, value ):
+        self.main_image.focus_value = value
+        self.main_image.apply_focus()
 
     def set_working_image ( self ):
-        print( "Working Image" )
+        file_path = QtWidgets.QFileDialog.getOpenFileName( self, "Choose Image", filter="*.jpg;;*.png" )[ 0 ]
+        image_pixmap = QtGui.QPixmap( file_path )
+        self.main_image.change_pixmap( image_pixmap )
 
     def set_image_changes ( self ):
         print( "Image Changes" )
