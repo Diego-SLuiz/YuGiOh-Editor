@@ -3,12 +3,24 @@ from PIL import Image, ImageQt
 
 class EditingImage ( QtWidgets.QLabel ):
 
+    FOCUS_ADJUST = {
+        "Center": ( 0.5, 0.5, 0.5, 0.5 ),
+        "Top": ( 0.5, 0, 0.5, 1 ),
+        "Bottom": ( 0.5, 1, 0.5, 0 ),
+        "Left": ( 0, 0.5, 1, 0.5 ),
+        "Right": ( 1, 0.5, 0, 0.5 ),
+        "Top-Left": ( 0, 0, 1, 1 ),
+        "Top-Right": ( 1, 0, 0, 1 ),
+        "Bottom-Left": ( 0, 1, 1, 0 ),
+        "Bottom-Right": ( 1, 1, 0, 0 ),
+    }
+
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.original_image = None
         self.current_image = None
         self.focus_value = 0
-        self.focus_area = "center"
+        self.focus_area = "Center"
 
     def resizeEvent ( self, event ):
         self.resize_pixmap()
@@ -17,15 +29,14 @@ class EditingImage ( QtWidgets.QLabel ):
     def change_pixmap ( self, pixmap ):
         self.original_image = pixmap
         self.current_image = pixmap
-        self.setPixmap( pixmap )
-        self.resize_pixmap()
+        self.apply_focus()
 
     def resize_pixmap ( self ):
         if not self.current_image:
             return
 
         new_size = self.size()
-        transform_mode = QtCore.Qt.TransformationMode.FastTransformation
+        transform_mode = QtCore.Qt.TransformationMode.SmoothTransformation
         aspect_mode = QtCore.Qt.AspectRatioMode.KeepAspectRatio
 
         pixmap = self.current_image
@@ -39,21 +50,22 @@ class EditingImage ( QtWidgets.QLabel ):
 
         current_size = self.original_image.rect().size()
         width, height = current_size.toTuple()
-        offset_top = self.focus_value / 100 * height // 2
-        offset_bottom = height - offset_top
-        offset_left = self.focus_value / 100 * width // 2
-        offset_right = width - offset_left
 
-        transform_mode = QtCore.Qt.TransformationMode.FastTransformation
-        aspect_mode = QtCore.Qt.AspectRatioMode.KeepAspectRatio
+        x_value = self.focus_value / 100 * width
+        y_value = self.focus_value / 100 * height
+
+        offset_adjust = self.FOCUS_ADJUST.get( self.focus_area, "Center" )
+        offset_left = x_value * offset_adjust[ 0 ]
+        offset_top = y_value * offset_adjust[ 1 ]
+        offset_right = width - x_value * offset_adjust[ 2 ]
+        offset_bottom = height - y_value * offset_adjust[ 3 ]
 
         working_image = ImageQt.fromqpixmap( self.original_image )
         working_image = working_image.crop( ( offset_left, offset_top, offset_right, offset_bottom ) )
         working_image = QtGui.QPixmap.fromImage( ImageQt.ImageQt( working_image ) )
-        working_image = working_image.scaled( self.size(), aspect_mode, transform_mode )
 
         self.current_image = working_image
-        self.setPixmap( working_image )
+        self.resize_pixmap()
 
 class ImageEditorDialog ( QtWidgets.QDialog ):
 
@@ -74,6 +86,7 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
         self.resize( QtCore.QSize( 640, 480 ) )
+        self.setSizePolicy( QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Maximum )
 
     def create_widgets ( self ):
         # Main widget layout
@@ -142,6 +155,7 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         select_focus.addItems( self.FOCUS_AREAS )
         select_focus.currentIndexChanged.connect( self.set_focus_area )
         preferences_layout.addRow( "Focus Area", select_focus )
+        self.select_focus = select_focus
 
         input_focus = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=100 )
         input_focus.valueChanged.connect( self.set_focus_value )
@@ -184,7 +198,8 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         print( "Compress Colors" )
 
     def set_focus_area ( self ):
-        print( "Focus Area" )
+        self.main_image.focus_area = self.select_focus.currentText()
+        self.main_image.apply_focus()
 
     def set_focus_value ( self, value ):
         self.main_image.focus_value = value
