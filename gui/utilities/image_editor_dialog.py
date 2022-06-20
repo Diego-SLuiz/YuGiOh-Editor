@@ -1,5 +1,5 @@
 from PySide6 import QtWidgets, QtCore, QtGui
-from PIL import Image, ImageQt
+from PIL import ImageQt, ImageEnhance
 
 class EditingImage ( QtWidgets.QLabel ):
 
@@ -17,39 +17,35 @@ class EditingImage ( QtWidgets.QLabel ):
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
-        self.original_image = None
-        self.current_image = None
-        self.focus_value = 0
+        self.original_pixmap = None
         self.focus_area = "Center"
+        self.focus_value = 0
+        self.color_value = 100
+        self.bright_value = 100
+        self.sharpen_value = 100
+        self.contrast_value = 100
 
     def resizeEvent ( self, event ):
-        self.resize_pixmap()
+        self.update_pixmap()
         super().resizeEvent( event )
 
-    def change_pixmap ( self, pixmap ):
-        self.original_image = pixmap
-        self.current_image = pixmap
-        self.apply_focus()
+    def change_pixmap ( self, new_pixmap ):
+        self.original_pixmap = new_pixmap
+        self.update_pixmap()
 
-    def resize_pixmap ( self ):
-        if not self.current_image:
+    def update_pixmap ( self ):
+        if not self.original_pixmap:
             return
 
-        new_size = self.size()
-        transform_mode = QtCore.Qt.TransformationMode.SmoothTransformation
-        aspect_mode = QtCore.Qt.AspectRatioMode.KeepAspectRatio
-
-        pixmap = self.current_image
-        pixmap = pixmap.scaled( new_size, aspect_mode, transform_mode )
-
-        self.setPixmap( pixmap )
+        self.apply_focus()
+        self.apply_enhancements()
+        self.resize_pixmap()
 
     def apply_focus ( self ):
         if self.focus_value == 100:
             return
 
-        current_size = self.original_image.rect().size()
-        width, height = current_size.toTuple()
+        width, height = self.original_pixmap.rect().size().toTuple()
 
         x_value = self.focus_value / 100 * width
         y_value = self.focus_value / 100 * height
@@ -60,12 +56,37 @@ class EditingImage ( QtWidgets.QLabel ):
         offset_right = width - x_value * offset_adjust[ 2 ]
         offset_bottom = height - y_value * offset_adjust[ 3 ]
 
-        working_image = ImageQt.fromqpixmap( self.original_image )
+        working_image = ImageQt.fromqpixmap( self.original_pixmap )
         working_image = working_image.crop( ( offset_left, offset_top, offset_right, offset_bottom ) )
-        working_image = QtGui.QPixmap.fromImage( ImageQt.ImageQt( working_image ) )
 
-        self.current_image = working_image
-        self.resize_pixmap()
+        working_pixmap = QtGui.QPixmap.fromImage( ImageQt.ImageQt( working_image ) )
+        self.current_pixmap = working_pixmap
+
+    def apply_enhancements ( self ):
+        working_image = ImageQt.fromqpixmap( self.current_pixmap )
+
+        color_enhancer = ImageEnhance.Color( working_image )
+        working_image = color_enhancer.enhance( self.color_value / 100 )
+
+        bright_enhance = ImageEnhance.Brightness( working_image )
+        working_image = bright_enhance.enhance( self.bright_value / 100 )
+
+        contrast_enhance = ImageEnhance.Contrast( working_image )
+        working_image = contrast_enhance.enhance( self.contrast_value / 100 )
+
+        sharpen_enhance = ImageEnhance.Sharpness( working_image )
+        working_image = sharpen_enhance.enhance( self.sharpen_value / 100 )
+
+        working_pixmap = QtGui.QPixmap.fromImage( ImageQt.ImageQt( working_image ) )
+        self.current_pixmap = working_pixmap
+
+    def resize_pixmap ( self ):
+        transform_mode = QtCore.Qt.TransformationMode.SmoothTransformation
+        aspect_mode = QtCore.Qt.AspectRatioMode.KeepAspectRatio
+
+        working_pixmap = self.current_pixmap
+        working_pixmap = working_pixmap.scaled( self.size(), aspect_mode, transform_mode )
+        self.setPixmap( working_pixmap )
 
 class ImageEditorDialog ( QtWidgets.QDialog ):
 
@@ -111,19 +132,19 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         group_enhance.setLayout( enhance_layout )
         config_layout.addWidget( group_enhance, 2 )
 
-        enhance_color = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=200, singleStep=10 )
+        enhance_color = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=200, singleStep=5, value=100 )
         enhance_color.valueChanged.connect( self.set_enhance_color )
         enhance_layout.addRow( "Color", enhance_color )
 
-        enhance_contrast = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=200, singleStep=10 )
+        enhance_contrast = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=200, singleStep=5, value=100 )
         enhance_contrast.valueChanged.connect( self.set_enhance_contrast )
         enhance_layout.addRow( "Contrast", enhance_contrast )
 
-        enhance_brightness = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=200, singleStep=10 )
+        enhance_brightness = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=200, singleStep=5, value=100 )
         enhance_brightness.valueChanged.connect( self.set_enhance_brightness )
         enhance_layout.addRow( "Brightness", enhance_brightness )
 
-        enhance_sharpness = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=200, singleStep=10 )
+        enhance_sharpness = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=200, singleStep=5, value=100 )
         enhance_sharpness.valueChanged.connect( self.set_enhance_sharpness )
         enhance_layout.addRow( "Sharpness", enhance_sharpness )
 
@@ -153,9 +174,8 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
 
         select_focus = QtWidgets.QComboBox()
         select_focus.addItems( self.FOCUS_AREAS )
-        select_focus.currentIndexChanged.connect( self.set_focus_area )
+        select_focus.currentTextChanged.connect( self.set_focus_area )
         preferences_layout.addRow( "Focus Area", select_focus )
-        self.select_focus = select_focus
 
         input_focus = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=100 )
         input_focus.valueChanged.connect( self.set_focus_value )
@@ -176,17 +196,21 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         button_confirm.clicked.connect( self.set_image_changes )
         button_layout.addWidget( button_confirm )
 
-    def set_enhance_color ( self ):
-        print( "Enhance Color" )
+    def set_enhance_color ( self, color_value ):
+        self.main_image.color_value = color_value
+        self.main_image.update_pixmap()
 
-    def set_enhance_contrast ( self ):
-        print( "Enhance Contrast" )
+    def set_enhance_contrast ( self, contrast_value ):
+        self.main_image.contrast_value = contrast_value
+        self.main_image.update_pixmap()
 
-    def set_enhance_brightness ( self ):
-        print( "Enhance Brightness" )
+    def set_enhance_brightness ( self, bright_value ):
+        self.main_image.bright_value = bright_value
+        self.main_image.update_pixmap()
 
-    def set_enhance_sharpness ( self ):
-        print( "Enhance Sharpness" )
+    def set_enhance_sharpness ( self, sharpen_value ):
+        self.main_image.sharpen_value = sharpen_value
+        self.main_image.update_pixmap()
 
     def set_compress_width ( self ):
         print( "Compress Width" )
@@ -197,18 +221,20 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
     def set_compress_colors ( self ):
         print( "Compress Colors" )
 
-    def set_focus_area ( self ):
-        self.main_image.focus_area = self.select_focus.currentText()
-        self.main_image.apply_focus()
+    def set_focus_area ( self, focus_area ):
+        self.main_image.focus_area = focus_area
+        self.main_image.update_pixmap()
 
-    def set_focus_value ( self, value ):
-        self.main_image.focus_value = value
-        self.main_image.apply_focus()
+    def set_focus_value ( self, focus_value ):
+        self.main_image.focus_value = focus_value
+        self.main_image.update_pixmap()
 
     def set_working_image ( self ):
         file_path = QtWidgets.QFileDialog.getOpenFileName( self, "Choose Image", filter="*.jpg;;*.png" )[ 0 ]
-        image_pixmap = QtGui.QPixmap( file_path )
-        self.main_image.change_pixmap( image_pixmap )
+
+        if file_path:
+            image_pixmap = QtGui.QPixmap( file_path )
+            self.main_image.change_pixmap( image_pixmap )
 
     def set_image_changes ( self ):
         print( "Image Changes" )
