@@ -3,27 +3,17 @@ from PIL import ImageQt, ImageEnhance
 
 class EditingImage ( QtWidgets.QLabel ):
 
-    FOCUS_ADJUST = {
-        "Center": ( 0.5, 0.5, 0.5, 0.5 ),
-        "Top": ( 0.5, 0, 0.5, 1 ),
-        "Bottom": ( 0.5, 1, 0.5, 0 ),
-        "Left": ( 0, 0.5, 1, 0.5 ),
-        "Right": ( 1, 0.5, 0, 0.5 ),
-        "Top-Left": ( 0, 0, 1, 1 ),
-        "Top-Right": ( 1, 0, 0, 1 ),
-        "Bottom-Left": ( 0, 1, 1, 0 ),
-        "Bottom-Right": ( 1, 1, 0, 0 ),
-    }
-
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.original_pixmap = None
-        self.focus_area = "Center"
+        self.current_pixmap = None
         self.focus_value = 0
+        self.x_adjust = 50
+        self.y_adjust = 50
         self.color_value = 100
-        self.bright_value = 100
-        self.sharpen_value = 100
         self.contrast_value = 100
+        self.sharpen_value = 100
+        self.bright_value = 100
 
     def resizeEvent ( self, event ):
         self.update_pixmap()
@@ -41,23 +31,41 @@ class EditingImage ( QtWidgets.QLabel ):
         self.apply_enhancements()
         self.resize_pixmap()
 
+    def resize_pixmap ( self ):
+        if not self.current_pixmap:
+            return
+
+        transform_mode = QtCore.Qt.TransformationMode.SmoothTransformation
+        aspect_mode = QtCore.Qt.AspectRatioMode.KeepAspectRatio
+
+        original_size = self.original_pixmap.size()
+        requested_size = self.size()
+
+        if requested_size.width() > original_size.width() * 3:
+            requested_size.setWidth( original_size.width() * 3 )
+
+        if requested_size.height() > original_size.height() * 3:
+            requested_size.setHeight( original_size.height() * 3 )
+
+        working_pixmap = self.current_pixmap
+        working_pixmap = working_pixmap.scaled( requested_size, aspect_mode, transform_mode )
+
+        self.setPixmap( working_pixmap )
+
     def apply_focus ( self ):
         if self.focus_value == 100:
             return
 
         width, height = self.original_pixmap.rect().size().toTuple()
-
         x_value = self.focus_value / 100 * width
         y_value = self.focus_value / 100 * height
-
-        offset_adjust = self.FOCUS_ADJUST.get( self.focus_area, "Center" )
-        offset_left = x_value * offset_adjust[ 0 ]
-        offset_top = y_value * offset_adjust[ 1 ]
-        offset_right = width - x_value * offset_adjust[ 2 ]
-        offset_bottom = height - y_value * offset_adjust[ 3 ]
+        left = self.x_adjust / 100 * x_value
+        top = self.y_adjust / 100 * y_value
+        right = width - ( 1 - self.x_adjust / 100 ) * x_value
+        bottom = height - ( 1 - self.y_adjust / 100 ) * y_value
 
         working_image = ImageQt.fromqpixmap( self.original_pixmap )
-        working_image = working_image.crop( ( offset_left, offset_top, offset_right, offset_bottom ) )
+        working_image = working_image.crop( ( left, top, right, bottom ) )
 
         working_pixmap = QtGui.QPixmap.fromImage( ImageQt.ImageQt( working_image ) )
         self.current_pixmap = working_pixmap
@@ -80,28 +88,7 @@ class EditingImage ( QtWidgets.QLabel ):
         working_pixmap = QtGui.QPixmap.fromImage( ImageQt.ImageQt( working_image ) )
         self.current_pixmap = working_pixmap
 
-    def resize_pixmap ( self ):
-        transform_mode = QtCore.Qt.TransformationMode.SmoothTransformation
-        aspect_mode = QtCore.Qt.AspectRatioMode.KeepAspectRatio
-
-        working_pixmap = self.current_pixmap
-        working_pixmap = working_pixmap.scaled( self.size(), aspect_mode, transform_mode )
-        self.setPixmap( working_pixmap )
-
 class ImageEditorDialog ( QtWidgets.QDialog ):
-
-    # default focus areas
-    FOCUS_AREAS = [
-        "Center",
-        "Top",
-        "Bottom",
-        "Left",
-        "Right",
-        "Top-Left",
-        "Top-Right",
-        "Bottom-Left",
-        "Bottom-Right"
-    ]
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
@@ -172,14 +159,19 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         group_preferences.setLayout( preferences_layout )
         config_layout.addWidget( group_preferences, 2 )
 
-        select_focus = QtWidgets.QComboBox()
-        select_focus.addItems( self.FOCUS_AREAS )
-        select_focus.currentTextChanged.connect( self.set_focus_area )
-        preferences_layout.addRow( "Focus Area", select_focus )
-
-        input_focus = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=100 )
+        input_focus = QtWidgets.QSpinBox( suffix="%", minimum=0, maximum=100, value=0, singleStep=1 )
         input_focus.valueChanged.connect( self.set_focus_value )
         preferences_layout.addRow( "Focus Value", input_focus )
+
+        slider_adjust_x = QtWidgets.QSlider( minimum=0, maximum=100, value=50, singleStep=1 )
+        slider_adjust_x.setOrientation( QtCore.Qt.Orientation.Horizontal )
+        slider_adjust_x.valueChanged.connect( self.set_adjust_x )
+        preferences_layout.addRow( "X Adjust", slider_adjust_x )
+
+        slider_adjust_y = QtWidgets.QSlider( minimum=0, maximum=100, value=50, singleStep=1 )
+        slider_adjust_y.setOrientation( QtCore.Qt.Orientation.Horizontal )
+        slider_adjust_y.valueChanged.connect( self.set_adjust_y )
+        preferences_layout.addRow( "Y Adjust", slider_adjust_y )
 
         # Buttons actions
         button_layout = QtWidgets.QHBoxLayout()
@@ -221,12 +213,16 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
     def set_compress_colors ( self ):
         print( "Compress Colors" )
 
-    def set_focus_area ( self, focus_area ):
-        self.main_image.focus_area = focus_area
-        self.main_image.update_pixmap()
-
     def set_focus_value ( self, focus_value ):
         self.main_image.focus_value = focus_value
+        self.main_image.update_pixmap()
+
+    def set_adjust_x ( self, adjust_value ):
+        self.main_image.x_adjust = adjust_value
+        self.main_image.update_pixmap()
+
+    def set_adjust_y ( self, adjust_value ):
+        self.main_image.y_adjust = adjust_value
         self.main_image.update_pixmap()
 
     def set_working_image ( self ):
