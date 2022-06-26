@@ -5,8 +5,8 @@ class EditingImage ( QtWidgets.QLabel ):
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
-        self.original_pixmap = None
-        self.current_pixmap = None
+        self.original_image = None
+        self.current_image = None
         self.focus_value = 0
         self.x_adjust = 50
         self.y_adjust = 50
@@ -16,29 +16,29 @@ class EditingImage ( QtWidgets.QLabel ):
         self.bright_value = 100
 
     def resizeEvent ( self, event ):
-        self.update_pixmap()
+        self.resize_image()
         super().resizeEvent( event )
 
-    def change_pixmap ( self, new_pixmap ):
-        self.original_pixmap = new_pixmap
-        self.update_pixmap()
+    def change_image ( self, new_image ):
+        self.original_image = new_image
+        self.update_image()
 
-    def update_pixmap ( self ):
-        if not self.original_pixmap:
+    def update_image ( self ):
+        if not self.original_image:
             return
 
         self.apply_focus()
         self.apply_enhancements()
-        self.resize_pixmap()
+        self.resize_image()
 
-    def resize_pixmap ( self ):
-        if not self.current_pixmap:
+    def resize_image ( self ):
+        if not self.current_image:
             return
 
         transform_mode = QtCore.Qt.TransformationMode.SmoothTransformation
         aspect_mode = QtCore.Qt.AspectRatioMode.KeepAspectRatio
 
-        original_size = self.original_pixmap.size()
+        original_size = self.original_image.size()
         requested_size = self.size()
 
         if requested_size.width() > original_size.width() * 3:
@@ -47,31 +47,22 @@ class EditingImage ( QtWidgets.QLabel ):
         if requested_size.height() > original_size.height() * 3:
             requested_size.setHeight( original_size.height() * 3 )
 
-        working_pixmap = self.current_pixmap
-        working_pixmap = working_pixmap.scaled( requested_size, aspect_mode, transform_mode )
-
-        self.setPixmap( working_pixmap )
+        resized_image = self.current_image.scaled( requested_size, aspect_mode, transform_mode )
+        self.setPixmap( QtGui.QPixmap.fromImage( resized_image ) )
 
     def apply_focus ( self ):
-        if self.focus_value == 100:
-            return
-
-        width, height = self.original_pixmap.rect().size().toTuple()
+        width, height = self.original_image.rect().size().toTuple()
         x_value = self.focus_value / 100 * width
         y_value = self.focus_value / 100 * height
         left = self.x_adjust / 100 * x_value
         top = self.y_adjust / 100 * y_value
-        right = width - ( 1 - self.x_adjust / 100 ) * x_value
-        bottom = height - ( 1 - self.y_adjust / 100 ) * y_value
+        right = ( width - ( 1 - self.x_adjust / 100 ) * x_value ) - left
+        bottom = ( height - ( 1 - self.y_adjust / 100 ) * y_value ) - top
 
-        working_image = ImageQt.fromqpixmap( self.original_pixmap )
-        working_image = working_image.crop( ( left, top, right, bottom ) )
-
-        working_pixmap = QtGui.QPixmap.fromImage( ImageQt.ImageQt( working_image ) )
-        self.current_pixmap = working_pixmap
+        self.current_image = self.original_image.copy( left, top, right, bottom )
 
     def apply_enhancements ( self ):
-        working_image = ImageQt.fromqpixmap( self.current_pixmap )
+        working_image = ImageQt.fromqimage( self.current_image )
 
         color_enhancer = ImageEnhance.Color( working_image )
         working_image = color_enhancer.enhance( self.color_value / 100 )
@@ -85,8 +76,7 @@ class EditingImage ( QtWidgets.QLabel ):
         sharpen_enhance = ImageEnhance.Sharpness( working_image )
         working_image = sharpen_enhance.enhance( self.sharpen_value / 100 )
 
-        working_pixmap = QtGui.QPixmap.fromImage( ImageQt.ImageQt( working_image ) )
-        self.current_pixmap = working_pixmap
+        self.current_image = ImageQt.ImageQt( working_image )
 
 class ImageEditorDialog ( QtWidgets.QDialog ):
 
@@ -190,19 +180,19 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
 
     def set_enhance_color ( self, color_value ):
         self.main_image.color_value = color_value
-        self.main_image.update_pixmap()
+        self.main_image.update_image()
 
     def set_enhance_contrast ( self, contrast_value ):
         self.main_image.contrast_value = contrast_value
-        self.main_image.update_pixmap()
+        self.main_image.update_image()
 
     def set_enhance_brightness ( self, bright_value ):
         self.main_image.bright_value = bright_value
-        self.main_image.update_pixmap()
+        self.main_image.update_image()
 
     def set_enhance_sharpness ( self, sharpen_value ):
         self.main_image.sharpen_value = sharpen_value
-        self.main_image.update_pixmap()
+        self.main_image.update_image()
 
     def set_compress_width ( self ):
         print( "Compress Width" )
@@ -215,22 +205,22 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
 
     def set_focus_value ( self, focus_value ):
         self.main_image.focus_value = focus_value
-        self.main_image.update_pixmap()
+        self.main_image.update_image()
 
     def set_adjust_x ( self, adjust_value ):
         self.main_image.x_adjust = adjust_value
-        self.main_image.update_pixmap()
+        self.main_image.update_image()
 
     def set_adjust_y ( self, adjust_value ):
         self.main_image.y_adjust = adjust_value
-        self.main_image.update_pixmap()
+        self.main_image.update_image()
 
     def set_working_image ( self ):
         file_path = QtWidgets.QFileDialog.getOpenFileName( self, "Choose Image", filter="*.jpg;;*.png" )[ 0 ]
 
         if file_path:
-            image_pixmap = QtGui.QPixmap( file_path )
-            self.main_image.change_pixmap( image_pixmap )
+            image = QtGui.QImage( file_path )
+            self.main_image.change_image( image )
 
     def set_image_changes ( self ):
         print( "Image Changes" )
