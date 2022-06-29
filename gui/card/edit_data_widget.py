@@ -8,8 +8,8 @@ class EditDataWidget ( QtWidgets.QWidget ):
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
-        self.image_editor = ImageEditorDialog( self )
         self.working_card = None
+        self.image_editor = ImageEditorDialog( self )
 
     def create_widgets ( self ):
         # Card default properties
@@ -137,11 +137,11 @@ class EditDataWidget ( QtWidgets.QWidget ):
         self.input_password.setValue( int( card.password, 10 ) )
 
     def set_artwork ( self ):
-        self.image_editor.exec()
+        self.image_editor.exec( 102, 96, 256 )
         print( "Set Artwork" )
 
     def set_miniature ( self ):
-        self.image_editor.exec()
+        self.image_editor.exec( 40, 32, 64 )
         print( "Set Miniature" )
 
     def set_title ( self ):

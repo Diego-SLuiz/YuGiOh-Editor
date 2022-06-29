@@ -5,6 +5,7 @@ class EditingImage ( QtWidgets.QLabel ):
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
+        self.keep_proportion = False
         self.original_image = None
         self.current_image = None
         self.focus_value = 0
@@ -14,6 +15,9 @@ class EditingImage ( QtWidgets.QLabel ):
         self.contrast_value = 100
         self.sharpen_value = 100
         self.bright_value = 100
+        self.compress_width = 0
+        self.compress_height = 0
+        self.compress_colors = 0
 
     def resizeEvent ( self, event ):
         self.resize_image()
@@ -27,6 +31,7 @@ class EditingImage ( QtWidgets.QLabel ):
         if not self.original_image:
             return
 
+        self.apply_proportion()
         self.apply_focus()
         self.apply_enhancements()
         self.resize_image()
@@ -50,8 +55,31 @@ class EditingImage ( QtWidgets.QLabel ):
         resized_image = self.current_image.scaled( requested_size, aspect_mode, transform_mode )
         self.setPixmap( QtGui.QPixmap.fromImage( resized_image ) )
 
+    def apply_proportion ( self ):
+        original_width, original_height = self.original_image.rect().size().toTuple()
+        resize_width, resize_height = self.compress_width, self.compress_height
+
+        left = 0
+        top = 0
+        right = original_width
+        bottom = original_height
+
+        if self.keep_proportion:
+            original_proportion = original_width / original_height
+            resize_proportion = resize_width / resize_height
+
+            if resize_proportion > original_proportion:
+                top = ( original_height - original_width / resize_proportion ) * ( self.y_adjust / 100 )
+                bottom = original_width / resize_proportion
+
+            else:
+                left = ( original_width - original_height * resize_proportion ) * ( self.x_adjust / 100 )
+                right = original_height * resize_proportion
+
+        self.current_image = self.original_image.copy( left, top, right, bottom )
+
     def apply_focus ( self ):
-        width, height = self.original_image.rect().size().toTuple()
+        width, height = self.current_image.rect().size().toTuple()
         x_value = self.focus_value / 100 * width
         y_value = self.focus_value / 100 * height
         left = self.x_adjust / 100 * x_value
@@ -59,7 +87,7 @@ class EditingImage ( QtWidgets.QLabel ):
         right = ( width - ( 1 - self.x_adjust / 100 ) * x_value ) - left
         bottom = ( height - ( 1 - self.y_adjust / 100 ) * y_value ) - top
 
-        self.current_image = self.original_image.copy( left, top, right, bottom )
+        self.current_image = self.current_image.copy( left, top, right, bottom )
 
     def apply_enhancements ( self ):
         working_image = ImageQt.fromqimage( self.current_image )
@@ -78,13 +106,20 @@ class EditingImage ( QtWidgets.QLabel ):
 
         self.current_image = ImageQt.ImageQt( working_image )
 
+
 class ImageEditorDialog ( QtWidgets.QDialog ):
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
         self.create_widgets()
         self.resize( QtCore.QSize( 640, 480 ) )
-        self.setSizePolicy( QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Maximum )
+
+    def exec ( self, compress_width, compress_height, compress_colors ):
+        self.main_image.compress_width = compress_width
+        self.main_image.compress_height = compress_height
+        self.main_image.compress_colors = compress_colors
+        self.main_image.update_image()
+        return super().exec()
 
     def create_widgets ( self ):
         # Main widget layout
@@ -125,24 +160,6 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         enhance_sharpness.valueChanged.connect( self.set_enhance_sharpness )
         enhance_layout.addRow( "Sharpness", enhance_sharpness )
 
-        # Image transformations
-        compress_layout = QtWidgets.QFormLayout()
-        group_compress = QtWidgets.QGroupBox( "Image Compression" )
-        group_compress.setLayout( compress_layout )
-        config_layout.addWidget( group_compress, 2 )
-
-        compress_width = QtWidgets.QSpinBox( suffix=" Px", minimum=0, maximum=1024 )
-        compress_width.valueChanged.connect( self.set_compress_width )
-        compress_layout.addRow( "Width", compress_width )
-
-        compress_height = QtWidgets.QSpinBox( suffix=" Px", minimum=0, maximum=1024 )
-        compress_height.valueChanged.connect( self.set_compress_height )
-        compress_layout.addRow( "Height", compress_height )
-
-        compress_colors = QtWidgets.QSpinBox( suffix=" Colors", minimum=0, maximum=1024 )
-        compress_colors.valueChanged.connect( self.set_compress_colors )
-        compress_layout.addRow( "Colors", compress_colors )
-
         # Transformations preferences
         preferences_layout = QtWidgets.QFormLayout()
         group_preferences = QtWidgets.QGroupBox( "Preferences" )
@@ -162,6 +179,10 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         slider_adjust_y.setOrientation( QtCore.Qt.Orientation.Horizontal )
         slider_adjust_y.valueChanged.connect( self.set_adjust_y )
         preferences_layout.addRow( "Y Adjust", slider_adjust_y )
+
+        check_proportion = QtWidgets.QCheckBox( "Keep Proportion" )
+        check_proportion.stateChanged.connect( self.set_proportion_active )
+        preferences_layout.addRow( check_proportion )
 
         # Buttons actions
         button_layout = QtWidgets.QHBoxLayout()
@@ -194,15 +215,6 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         self.main_image.sharpen_value = sharpen_value
         self.main_image.update_image()
 
-    def set_compress_width ( self ):
-        print( "Compress Width" )
-
-    def set_compress_height ( self ):
-        print( "Compress Height" )
-
-    def set_compress_colors ( self ):
-        print( "Compress Colors" )
-
     def set_focus_value ( self, focus_value ):
         self.main_image.focus_value = focus_value
         self.main_image.update_image()
@@ -213,6 +225,10 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
 
     def set_adjust_y ( self, adjust_value ):
         self.main_image.y_adjust = adjust_value
+        self.main_image.update_image()
+
+    def set_proportion_active ( self, active_value ):
+        self.main_image.keep_proportion = bool( active_value )
         self.main_image.update_image()
 
     def set_working_image ( self ):
