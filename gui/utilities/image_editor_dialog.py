@@ -1,7 +1,33 @@
 from PySide6 import QtWidgets, QtCore, QtGui
-from PIL import ImageQt, ImageEnhance
+from PIL import Image, ImageQt, ImageEnhance
+
+class PreviewImage ( QtWidgets.QLabel ):
+
+    def __init__ ( self, *args, **kwargs ):
+        super().__init__( *args, **kwargs )
+        self.original_image: QtGui.QImage = None
+
+    def resizeEvent ( self, event ):
+        self.resize_image()
+        return super().resizeEvent( event )
+
+    def resize_image ( self ):
+        if not self.original_image:
+            return
+
+        aspect_mode = QtCore.Qt.AspectRatioMode.KeepAspectRatio
+        transform_mode = QtCore.Qt.TransformationMode.FastTransformation
+        scaled_image = self.original_image.scaled( self.size(), aspect_mode, transform_mode )
+
+        self.setPixmap( QtGui.QPixmap.fromImage( scaled_image ) )
+
+    def change_image ( self, new_image ):
+        self.original_image = ImageQt.ImageQt( new_image )
+        self.resize_image()
 
 class EditingImage ( QtWidgets.QLabel ):
+
+    compressed_image = QtCore.Signal( Image.Image )
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
@@ -35,6 +61,17 @@ class EditingImage ( QtWidgets.QLabel ):
         self.apply_focus()
         self.apply_enhancements()
         self.resize_image()
+        self.compress_image()
+
+    def compress_image ( self ):
+        new_size = ( self.compress_width, self.compress_height )
+        new_colors = self.compress_colors
+
+        working_image = ImageQt.fromqimage( self.current_image )
+        working_image = working_image.resize( new_size, Image.LANCZOS )
+        working_image = working_image.convert( "P", palette=Image.ADAPTIVE, colors=new_colors ).convert( "RGB" )
+
+        self.compressed_image.emit( working_image )
 
     def resize_image ( self ):
         if not self.current_image:
@@ -106,8 +143,9 @@ class EditingImage ( QtWidgets.QLabel ):
 
         self.current_image = ImageQt.ImageQt( working_image )
 
-
 class ImageEditorDialog ( QtWidgets.QDialog ):
+
+    editing_image = None
 
     def __init__ ( self, *args, **kwargs ):
         super().__init__( *args, **kwargs )
@@ -118,7 +156,15 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         self.main_image.compress_width = compress_width
         self.main_image.compress_height = compress_height
         self.main_image.compress_colors = compress_colors
+
+        if compress_width > 150 or compress_height > 150:
+            maximum_preview_size = QtCore.QSize( 150, 150 )
+        else:
+            maximum_preview_size = QtCore.QSize( compress_width, compress_height )
+
+        self.preview_image.setMaximumSize( maximum_preview_size )
         self.main_image.update_image()
+
         return super().exec()
 
     def create_widgets ( self ):
@@ -132,11 +178,27 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
         main_image.setMinimumSize( QtCore.QSize( 300, 300 ) )
         main_image.setAlignment( QtCore.Qt.AlignmentFlag.AlignCenter )
         main_layout.addWidget( main_image, 3 )
+        main_image.compressed_image.connect( self.set_editing_image )
         self.main_image = main_image
 
         # Image config layout
         config_layout = QtWidgets.QVBoxLayout()
         main_layout.addLayout( config_layout, 1 )
+
+        # Preview image
+        group_preview = QtWidgets.QGroupBox( "Image Preview" )
+        group_preview.setMinimumSize( QtCore.QSize( 150, 150 ) )
+        config_layout.addWidget( group_preview )
+
+        layout_preview = QtWidgets.QVBoxLayout()
+        layout_preview.setAlignment( QtCore.Qt.AlignmentFlag.AlignCenter )
+        group_preview.setLayout( layout_preview )
+
+        preview_image = PreviewImage()
+        preview_image.setSizePolicy( QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding )
+        layout_preview.addWidget( preview_image )
+        main_image.compressed_image.connect( preview_image.change_image )
+        self.preview_image = preview_image
 
         # Image enhancements
         enhance_layout = QtWidgets.QFormLayout()
@@ -238,5 +300,8 @@ class ImageEditorDialog ( QtWidgets.QDialog ):
             image = QtGui.QImage( file_path )
             self.main_image.change_image( image )
 
+    def set_editing_image ( self, new_image ):
+        self.editing_image = new_image
+
     def set_image_changes ( self ):
-        print( "Image Changes" )
+        self.accept()

@@ -137,12 +137,18 @@ class EditDataWidget ( QtWidgets.QWidget ):
         self.input_password.setValue( int( card.password, 10 ) )
 
     def set_artwork ( self ):
-        self.image_editor.exec( 102, 96, 256 )
-        print( "Set Artwork" )
+        accepted = self.image_editor.exec( 102, 96, 256 )
+
+        if accepted:
+            self.working_card.artwork_image = self.image_editor.editing_image
+            print( "Set Artwork" )
 
     def set_miniature ( self ):
-        self.image_editor.exec( 40, 32, 64 )
-        print( "Set Miniature" )
+        accepted = self.image_editor.exec( 40, 32, 64 )
+
+        if accepted:
+            self.working_card.miniature_image = self.image_editor.editing_image
+            print( "Set Miniature" )
 
     def set_title ( self ):
         print( "Set Title" )
